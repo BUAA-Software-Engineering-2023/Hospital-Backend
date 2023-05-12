@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
-from .models import Department, Doctor
+from .models import Department, Doctor, Notification
 
 
 # Create your views here.
@@ -54,6 +54,28 @@ class DoctorList(View):
                 'introduction': doctor.doctor_introduction
             }
             data.append(doctor_data)
+
+        response = {
+            'result': 1,
+            'data': data
+        }
+
+        return JsonResponse(response)
+class NotificationList(View):
+    def get(self, request):
+
+        notifications = Notification.objects.all()
+
+        # Serialize notification objects to JSON
+        data = []
+        for notification in notifications:
+            notification_data = {
+                'id': notification.notification_id,
+                'title': notification.title,
+                'link': notification.notification_link,
+                'date': notification.notification_time,
+            }
+            data.append(notification_data)
 
         response = {
             'result': 1,
