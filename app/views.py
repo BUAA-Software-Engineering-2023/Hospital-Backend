@@ -24,8 +24,13 @@ class DepartmentList(View):
                 "name": obj.get('department_type'),
                 "children": child
             })
-        print(type)
-        return HttpResponse(200)
+            response = {
+                'result': 1,
+                'data': data
+            }
+
+            return JsonResponse(response)
+
 
 
 class DoctorList(View):
