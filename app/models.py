@@ -68,8 +68,8 @@ class Notification(models.Model):
     notification_id = models.BigAutoField(primary_key=True)
     content = models.CharField(max_length=255)
     title = models.CharField(max_length=200)
-    notification_time = models.TimeField()
-
+    notification_time = models.DateField()
+    notification_link = models.CharField(max_length=255)
 
 class Code(models.Model):
     phone_number = models.BigIntegerField(primary_key=True)
