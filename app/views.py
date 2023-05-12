@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
-from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy
+from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy, Schedule
+
 
 
 # Create your views here.
@@ -30,7 +31,6 @@ class DepartmentList(View):
             }
 
             return JsonResponse(response)
-
 
 
 class DoctorList(View):
@@ -62,6 +62,7 @@ class DoctorList(View):
 
         return JsonResponse(response)
 
+
 class NotificationList(View):
     def get(self, request):
         notifications = Notification.objects.all()
@@ -83,9 +84,38 @@ class NotificationList(View):
         }
         return JsonResponse(response)
 
+
+class DoctorDetail(View):
+    def get(self, request, doctor_id):
+        try:
+            doctor = Doctor.objects.get(doctor_id=doctor_id)
+            schedules = Schedule.objects.filter(doctor_id=doctor_id).values('schedule_day')
+            schedules_data = []
+            for schedule in schedules:
+                schedules_data.append(schedule['schedule_day'])
+            data = {
+                "id": doctor.doctor_id,
+                "name": doctor.doctor_name,
+                "department": doctor.department_id.department_name,
+                'image': doctor.doctor_image.url if doctor.doctor_image else None,
+                "introduction": doctor.doctor_introduction,
+                "available": schedules_data
+            }
+            response = {
+                "result": 1,
+                "data": data
+            }
+            return JsonResponse(response)
+        except Doctor.DoesNotExist:
+            response = {
+                "result": 0,
+                "message": "Doctor does not exist."
+            }
+            return JsonResponse(response)
+
+
 class CarouselMapList(View):
     def get(self, request):
-
         carousel_maps = CarouselMap.objects.all()
 
         # Serialize notification objects to JSON
@@ -156,5 +186,6 @@ class VacancyList(View):
             "data":data,
         }
         return JsonResponse(response)
+
 
 
