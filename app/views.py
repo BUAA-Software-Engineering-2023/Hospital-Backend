@@ -64,7 +64,6 @@ class DoctorList(View):
 
 class NotificationList(View):
     def get(self, request):
-
         notifications = Notification.objects.all()
 
         # Serialize notification objects to JSON
