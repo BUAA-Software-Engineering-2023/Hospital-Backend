@@ -124,9 +124,10 @@ class Command(BaseCommand):
         # Generate notification data
         for _ in range(10):
             notification = Notification.objects.create(
-                content=fake.sentence(),
-                title=fake.word(),
-                notification_time=fake.time()
+                content=fake.text(max_nb_chars=255),
+                title=fake.sentence(nb_words=4),
+                notification_time=fake.date(),
+                notification_link=fake.url()
             )
 
     def seed_codes(self):

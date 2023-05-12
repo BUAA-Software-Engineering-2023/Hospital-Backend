@@ -2,6 +2,7 @@ from django.db import models
 import random
 from faker import Faker
 
+
 class Department(models.Model):
     department_id = models.AutoField(primary_key=True)
     department_name = models.CharField(max_length=20, blank=False)
@@ -70,6 +71,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=200)
     notification_time = models.DateField()
     notification_link = models.CharField(max_length=255)
+
 
 class Code(models.Model):
     phone_number = models.BigIntegerField(primary_key=True)

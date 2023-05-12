@@ -56,9 +56,10 @@ class DoctorList(View):
         }
 
         return JsonResponse(response)
+
+
 class NotificationList(View):
     def get(self, request):
-
         notifications = Notification.objects.all()
 
         # Serialize notification objects to JSON
