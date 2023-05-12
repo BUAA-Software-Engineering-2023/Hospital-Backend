@@ -1,25 +1,58 @@
 from django.shortcuts import render
 from django.views import View
-from django.http import HttpResponse
-from .models import Department
+from django.http import HttpResponse, JsonResponse
+from .models import Department, Doctor
+
+
 # Create your views here.
 
 class DepartmentList(View):
-    def get(self,request):
+    def get(self, request):
         type = []
         data = Department.objects.values('department_type').distinct()
         for obj in data:
             child = []
-            b = Department.objects.filter(department_type=obj.get('department_type')).values('department_name','department_id')
+            b = Department.objects.filter(department_type=obj.get('department_type')).values('department_name',
+                                                                                             'department_id')
             for c in b:
                 child.append({
                     "id": c.get('department_id'),
-                    "name":c.get('department_name')
+                    "name": c.get('department_name')
                 })
             print()
             type.append({
-                            "name": obj.get('department_type'),
-                            "children": child
-                                     })
+                "name": obj.get('department_type'),
+                "children": child
+            })
         print(type)
         return HttpResponse(200)
+
+
+class DoctorList(View):
+    def get(self, request):
+        keyword = request.GET.get('keyWord')
+
+        # Filter doctors by keyword if provided
+        if keyword:
+            doctors = Doctor.objects.filter(doctor_name__icontains=keyword)
+        else:
+            doctors = Doctor.objects.all()
+
+        # Serialize doctor objects to JSON
+        data = []
+        for doctor in doctors:
+            doctor_data = {
+                'id': doctor.doctor_id,
+                'name': doctor.doctor_name,
+                'department': doctor.department_id.department_name,
+                'image': doctor.doctor_image.url if doctor.doctor_image else None,
+                'introduction': doctor.doctor_introduction
+            }
+            data.append(doctor_data)
+
+        response = {
+            'result': 1,
+            'data': data
+        }
+
+        return JsonResponse(response)
