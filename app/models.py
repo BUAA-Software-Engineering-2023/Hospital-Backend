@@ -121,3 +121,9 @@ class CarouselMap(models.Model):
     carousel_map_id = models.AutoField(primary_key=True)
     carousel_map_img = models.ImageField()
     carousel_map_link = models.CharField(max_length=100)
+
+class News(models.Model):
+    news_id = models.AutoField(primary_key=True)
+    news_title = models.CharField(max_length=200)
+    news_link = models.CharField(max_length=200)
+    news_date = models.DateField()
