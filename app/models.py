@@ -1,5 +1,6 @@
 from django.db import models
-
+import random
+from faker import Faker
 
 class Department(models.Model):
     department_id = models.AutoField(primary_key=True)
@@ -10,16 +11,16 @@ class Department(models.Model):
 class Doctor(models.Model):
     doctor_id = models.AutoField(primary_key=True)
     department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=15, blank=False)
-    doctor_name = models.CharField(max_length=15, blank=False)
-    doctor_gender = models.CharField(max_length=10)
+    phone_number = models.CharField(max_length=200, blank=False)
+    doctor_name = models.CharField(max_length=200, blank=False)
+    doctor_gender = models.CharField(max_length=200)
     doctor_image = models.ImageField(default='')
     doctor_introduction = models.CharField(max_length=200)
 
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
-    phone_number = models.CharField(max_length=15, blank=False)
+    phone_number = models.CharField(max_length=200, blank=False)
     passwd = models.CharField(max_length=20)
     avatar = models.ImageField(default='')
 
@@ -27,19 +28,19 @@ class User(models.Model):
 class Patient(models.Model):
     patient_id = models.AutoField(primary_key=True)
     user_id = models.ManyToManyField(User)
-    patient_name = models.CharField(max_length=20, blank=False)
-    patient_gender = models.CharField(max_length=10)
-    identification = models.CharField(max_length=20)
-    phone_number = models.CharField(max_length=15, blank=False)
+    patient_name = models.CharField(max_length=200, blank=False)
+    patient_gender = models.CharField(max_length=200)
+    identification = models.CharField(max_length=200)
+    phone_number = models.CharField(max_length=200, blank=False)
     absence = models.IntegerField(default=0)
-    address = models.CharField(max_length=50)
+    address = models.CharField(max_length=200)
 
 
 class MedicalRecord(models.Model):
     medical_record_id = models.AutoField(primary_key=True)
-    doctor_id = models.OneToOneField(Doctor, on_delete=models.CASCADE)
-    patient_id = models.OneToOneField(Patient, on_delete=models.CASCADE)
-    department_id = models.OneToOneField(Department, on_delete=models.CASCADE)
+    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
     symptom = models.CharField(max_length=200)
     prescription = models.CharField(max_length=200)
     result = models.CharField(max_length=200)
@@ -48,8 +49,8 @@ class MedicalRecord(models.Model):
 
 class Message(models.Model):
     message_id = models.AutoField(primary_key=True)
-    user_id = models.OneToOneField(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=30)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
     content = models.CharField(max_length=200)
     message_time = models.DateField(blank=False)
     is_read = models.BooleanField()
@@ -57,16 +58,16 @@ class Message(models.Model):
 
 class Appointment(models.Model):
     appointment_id = models.AutoField(primary_key=True)
-    doctor_id = models.OneToOneField(Doctor, on_delete=models.CASCADE)
-    patient_id = models.OneToOneField(Patient, on_delete=models.CASCADE)
+    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     appointment_time = models.DateTimeField()
-    appointment_status = models.CharField(max_length=10)
+    appointment_status = models.CharField(max_length=200)
 
 
 class Notification(models.Model):
     notification_id = models.BigAutoField(primary_key=True)
     content = models.CharField(max_length=255)
-    title = models.CharField(max_length=20)
+    title = models.CharField(max_length=200)
     notification_time = models.TimeField()
 
 
@@ -85,8 +86,8 @@ class Admin(models.Model):
 class Payment(models.Model):
     payment_id = models.BigAutoField(primary_key=True)
     amount = models.FloatField()
-    payment_status = models.CharField(max_length=20)
-    appointment_id = models.OneToOneField(Appointment, on_delete=models.CASCADE)
+    payment_status = models.CharField(max_length=200)
+    appointment_id = models.ForeignKey(Appointment, on_delete=models.CASCADE)
 
 
 class Vacancy(models.Model):
@@ -100,16 +101,16 @@ class Vacancy(models.Model):
 
 class Leave(models.Model):
     leave_id = models.BigAutoField(primary_key=True)
-    doctor_id = models.OneToOneField(Doctor, on_delete=models.CASCADE)
+    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    type = models.CharField(max_length=10)
+    type = models.CharField(max_length=200)
     reseon = models.CharField(max_length=255)
-    leave_status = models.CharField(max_length=10)
+    leave_status = models.CharField(max_length=100)
 
 
 class Schedule(models.Model):
     schedule_id = models.BigAutoField(primary_key=True)
     schedule_day = models.DateField()
     schedule_ismorning = models.IntegerField(default=0)
-    doctor_id = models.OneToOneField(Doctor, on_delete=models.CASCADE)
+    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
