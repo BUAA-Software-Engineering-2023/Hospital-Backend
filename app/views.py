@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
-from .models import Department, Doctor, Notification, CarouselMap, Schedule, Vacancy
+from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy, Schedule
+
 
 
 # Create your views here.
@@ -121,9 +122,9 @@ class CarouselMapList(View):
         data = []
         for carousel_map in carousel_maps:
             carousel_map_data = {
-                'id': CarouselMap.carousel_map_id,
-                'img': CarouselMap.carousel_map_img,
-                'link': CarouselMap.carousel_map_link,
+                'id': carousel_map.carousel_map_id,
+                'img': carousel_map.carousel_map_img,
+                'link': carousel_map.carousel_map_link,
 
             }
             data.append(carousel_map_data)
@@ -133,3 +134,58 @@ class CarouselMapList(View):
             'data': data
         }
         return JsonResponse(response)
+
+class NewsList(View):
+    def get(self, request):
+
+        news = News.objects.all()
+
+        # Serialize notification objects to JSON
+        data = []
+        for new in news:
+            news_data = {
+                'id': new.news_id,
+                'title': new.news_title,
+                'link': new.news_link,
+                'date': new.news_date,
+            }
+            data.append(news_data)
+
+        response = {
+            'result': 1,
+            'data': data
+        }
+        return JsonResponse(response)
+
+class VacancyList(View):
+    def get(self,request):
+        data = []
+        departmentId = request.GET.get('department')
+        date = request.GET.get('date')
+        doctor_id_list = Vacancy.objects.filter(start_time__contains=date).values('doctor_id').distinct()
+        for doctor_id in doctor_id_list:
+            doctor_id=doctor_id['doctor_id']
+            doctor_info=Doctor.objects.get(doctor_id=doctor_id)
+            vacancies = Vacancy.objects.filter(start_time__contains=date,doctor_id=doctor_id).values('vacancy_count','start_time')
+            available = []
+            for vacancy in vacancies:
+                available.append({"time":vacancy['start_time'],"num":vacancy['vacancy_count']})
+            # print()
+            print(departmentId)
+            data.append({
+                "id": doctor_id,
+                "name": doctor_info.doctor_name,
+                "department":Department.objects.get(department_id=departmentId).department_name,
+                "image":'',
+                "introduction":doctor_info.doctor_introduction,
+                "available|1-2":available
+            })
+
+        response = {
+            "result":"1",
+            "data":data,
+        }
+        return JsonResponse(response)
+
+
+
