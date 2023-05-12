@@ -1,6 +1,7 @@
 
 from django.urls import path
-
+from .views import DepartmentList
 urlpatterns = [
-    path('', ),
+    path('api/departmentList', DepartmentList.as_view()),
 ]
+
