@@ -79,8 +79,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital',
         'USER': 'root',
-        'PASSWORD':'Wuxinyu67981998',
-        'HOST':'',
+        'PASSWORD':'Athebear521989!',
+        'HOST':'localhost',
         'PORT':'3306'
     }
 }
