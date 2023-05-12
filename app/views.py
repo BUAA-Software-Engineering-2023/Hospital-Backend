@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
-from .models import Department, Doctor, Notification
+from .models import Department, Doctor, Notification,CarouselMap
 
 
 # Create your views here.
@@ -62,7 +62,6 @@ class DoctorList(View):
 
         return JsonResponse(response)
 
-
 class NotificationList(View):
     def get(self, request):
         notifications = Notification.objects.all()
@@ -82,5 +81,26 @@ class NotificationList(View):
             'result': 1,
             'data': data
         }
+        return JsonResponse(response)
 
+class CarouselMapList(View):
+    def get(self, request):
+
+        carousel_maps = CarouselMap.objects.all()
+
+        # Serialize notification objects to JSON
+        data = []
+        for carousel_map in carousel_maps:
+            carousel_map_data = {
+                'id': CarouselMap.carousel_map_id,
+                'img': CarouselMap.carousel_map_img,
+                'link': CarouselMap.carousel_map_link,
+
+            }
+            data.append(carousel_map_data)
+
+        response = {
+            'result': 1,
+            'data': data
+        }
         return JsonResponse(response)
