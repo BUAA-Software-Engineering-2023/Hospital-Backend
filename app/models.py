@@ -116,6 +116,6 @@ class Schedule(models.Model):
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
 
 class CarouselMap(models.Model):
-    carouselmap_id = models.AutoField(primary_key=True)
-    carouselmap_img = models.ImageField()
-    carouselmap_link = models.CharField(max_length=100)
+    carousel_map_id = models.AutoField(primary_key=True)
+    carousel_map_img = models.ImageField()
+    carousel_map_link = models.CharField(max_length=100)
