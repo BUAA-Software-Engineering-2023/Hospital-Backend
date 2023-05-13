@@ -87,7 +87,8 @@ class Command(BaseCommand):
             symptom=fake.text(),
             prescription=fake.text(),
             result=fake.text(),
-            advice=fake.text()
+            advice=fake.text(),
+            medical_record_date=fake.date()
         )
         medical_record.save()
 
@@ -130,14 +131,14 @@ class Command(BaseCommand):
                 notification_link=fake.url()
             )
 
-    def seed_codes(self):
-        # Generate code data
-        for _ in range(10):
-            code = Code.objects.create(
-                phone_number=fake.random_number(digits=10),
-                create_time=fake.date_time(),
-                expire_time=fake.date_time()
-            )
+    # def seed_codes(self):
+    #     # Generate code data
+    #     for _ in range(10):
+    #         code = Code.objects.create(
+    #             phone_number=fake.random_number(digits=10),
+    #             create_time=fake.date_time(),
+    #             expire_time=fake.date_time()
+    #         )
 
     def seed_admins(self):
         # Generate admin data
