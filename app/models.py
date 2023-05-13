@@ -75,6 +75,7 @@ class Notification(models.Model):
 
 
 class Code(models.Model):
+    verification_code = models.CharField(max_length=20)
     phone_number = models.BigIntegerField(primary_key=True)
     create_time = models.DateTimeField()
     expire_time = models.DateTimeField()
