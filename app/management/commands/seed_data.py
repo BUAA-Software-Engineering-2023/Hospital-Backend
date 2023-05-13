@@ -87,7 +87,8 @@ class Command(BaseCommand):
             symptom=fake.text(),
             prescription=fake.text(),
             result=fake.text(),
-            advice=fake.text()
+            advice=fake.text(),
+            medical_record_date=fake.date()
         )
         medical_record.save()
 
