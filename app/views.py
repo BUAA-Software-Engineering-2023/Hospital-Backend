@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
-from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy, Schedule
+from django.conf import settings
+from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy,Schedule,Patient,User
+import json
 
 
 
@@ -185,5 +187,69 @@ class VacancyList(View):
         }
         return JsonResponse(response)
 
+class PatientList(View):
+    def get(self,request,user_id):
+        try:
+            data = []
+            patients = Patient.objects.filter(user_id=user_id).values('patient_gender','patient_name','phone_number',
+                                                                      'identification','absence','address','patient_id')
+            for patient in patients:
+                info ={
+                    "id":patient['patient_id'],
+                    "name":patient['patient_name'],
+                    "gender":patient['patient_gender'],
+                    "identification":patient['identification'],
+                    "phone":patient['phone_number'],
+                    "cnt":patient['absence'],
+                    'address':patient['address'],
+                }
+
+                data.append(info)
+            response = {
+                "result":"1",
+                "data":data
+            }
+            return JsonResponse(response)
+        except:
+            response={
+                "result":"0"
+            }
+            return JsonResponse(response)
 
 
+class UserInfo(View):
+    def get(self,request,user_id):
+        try:
+            data = []
+            users = User.objects.filter(user_id=user_id).values('phone_number')
+            for user in users:
+                info = {
+                    "phone":user['phone_number'],
+                }
+                data.append(info)
+
+            response = {
+                "result": "1",
+                "data": data
+            }
+            return JsonResponse(response)
+
+        except:
+            response = {
+                "result": "0"
+            }
+            return JsonResponse(response)
+
+
+
+class UserView(View):
+    def post(self,request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        user_name = json_obj['username']
+
+
+
+
+def make_token():
+    key = settimg
