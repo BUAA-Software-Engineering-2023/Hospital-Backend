@@ -2,9 +2,8 @@ from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
-from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy,Schedule,Patient,User
+from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, MedicalRecord
 import json
-
 
 
 # Create your views here.
@@ -137,9 +136,9 @@ class CarouselMapList(View):
         }
         return JsonResponse(response)
 
+
 class NewsList(View):
     def get(self, request):
-
         news = News.objects.all()
 
         # Serialize notification objects to JSON
@@ -159,74 +158,76 @@ class NewsList(View):
         }
         return JsonResponse(response)
 
+
 class VacancyList(View):
-    def get(self,request):
+    def get(self, request):
         data = []
         departmentId = request.GET.get('department')
         date = request.GET.get('date')
         doctor_id_list = Vacancy.objects.filter(start_time__contains=date).values('doctor_id').distinct()
         for doctor_id in doctor_id_list:
-            doctor_id=doctor_id['doctor_id']
-            doctor_info=Doctor.objects.get(doctor_id=doctor_id)
-            vacancies = Vacancy.objects.filter(start_time__contains=date,doctor_id=doctor_id).values('vacancy_count','start_time')
+            doctor_id = doctor_id['doctor_id']
+            doctor_info = Doctor.objects.get(doctor_id=doctor_id)
+            vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id).values('vacancy_count',
+                                                                                                      'start_time')
             available = []
             for vacancy in vacancies:
-                available.append({"time":vacancy['start_time'],"num":vacancy['vacancy_count']})
-            # print()
-            print(departmentId)
+                available.append({"time": vacancy['start_time'], "num": vacancy['vacancy_count']})
             data.append({
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
-                "department":Department.objects.get(department_id=departmentId).department_name,
-                "image":'',
-                "introduction":doctor_info.doctor_introduction,
-                "available|1-2":available
+                "department": Department.objects.get(department_id=departmentId).department_name,
+                "image": '',
+                "introduction": doctor_info.doctor_introduction,
+                "available|1-2": available
             })
 
         response = {
-            "result":"1",
-            "data":data,
+            "result": "1",
+            "data": data,
         }
         return JsonResponse(response)
 
+
 class PatientList(View):
-    def get(self,request,user_id):
+    def get(self, request, user_id):
         try:
             data = []
-            patients = Patient.objects.filter(user_id=user_id).values('patient_gender','patient_name','phone_number',
-                                                                      'identification','absence','address','patient_id')
+            patients = Patient.objects.filter(user_id=user_id).values('patient_gender', 'patient_name', 'phone_number',
+                                                                      'identification', 'absence', 'address',
+                                                                      'patient_id')
             for patient in patients:
-                info ={
-                    "id":patient['patient_id'],
-                    "name":patient['patient_name'],
-                    "gender":patient['patient_gender'],
-                    "identification":patient['identification'],
-                    "phone":patient['phone_number'],
-                    "cnt":patient['absence'],
-                    'address':patient['address'],
+                info = {
+                    "id": patient['patient_id'],
+                    "name": patient['patient_name'],
+                    "gender": patient['patient_gender'],
+                    "identification": patient['identification'],
+                    "phone": patient['phone_number'],
+                    "cnt": patient['absence'],
+                    'address': patient['address'],
                 }
 
                 data.append(info)
             response = {
-                "result":"1",
-                "data":data
+                "result": "1",
+                "data": data
             }
             return JsonResponse(response)
         except:
-            response={
-                "result":"0"
+            response = {
+                "result": "0"
             }
             return JsonResponse(response)
 
 
 class UserInfo(View):
-    def get(self,request,user_id):
+    def get(self, request, user_id):
         try:
             data = []
             users = User.objects.filter(user_id=user_id).values('phone_number')
             for user in users:
                 info = {
-                    "phone":user['phone_number'],
+                    "phone": user['phone_number'],
                 }
                 data.append(info)
 
@@ -243,15 +244,33 @@ class UserInfo(View):
             return JsonResponse(response)
 
 
-
 class UserView(View):
-    def post(self,request):
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         user_name = json_obj['username']
 
 
-
-
-def make_token():
-    key = settimg
+class PatientDetail(View):
+    def get(self, request, patient_id):
+        patient = Patient.objects.get(patient_id=patient_id)
+        medical_records = MedicalRecord.objects.filter(patient_id=patient_id)
+        medical_records_data = []
+        for medical_record in medical_records:
+            medical_records_data.append({
+                "medical_record_date": medical_record.medical_record_date,
+                "symptom": medical_record.symptom,
+                "prescription": medical_record.prescription,
+                "result": medical_record.result,
+                "advice": medical_record.advice,
+            })
+        response = {"result": 1,
+                    "data": [{
+                        "id": patient.patient_id,
+                        "name": patient.patient_name,
+                        "gender": patient.patient_gender,
+                        "absence": patient.absence,
+                        "address": patient.address,
+                        "medicalRecord": medical_records_data
+                    }]}
+        return JsonResponse(response)
