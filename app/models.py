@@ -127,3 +127,8 @@ class News(models.Model):
     news_title = models.CharField(max_length=200)
     news_link = models.CharField(max_length=200)
     news_date = models.DateField()
+
+class Vacancy_setting(models.Model):
+    vacancy_cnt = models.IntegerField(default=10)
+    vacancy_day = models.IntegerField()
+    vacancy_time = models.CharField(max_length=20)
