@@ -1,3 +1,7 @@
+
+import random
+import string
+
 import hashlib
 
 import jwt
@@ -6,6 +10,10 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
+from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, \
+    MedicalRecord, Code
+import json
+from datetime import datetime, timedelta
 from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, MedicalRecord
 
@@ -252,6 +260,31 @@ class UserInfo(View):
             return JsonResponse(response)
 
 
+def generate_verification_code():
+    characters = string.digits + string.ascii_letters
+    code = ''.join(random.choice(characters) for _ in range(6))
+    return code
+
+
+class SendCode(View):
+    def get(self, request, phone_number):
+        verification_code = generate_verification_code()
+        date_time = datetime.now()
+        info = Code.objects.get(phone_number=phone_number)
+        if info is None:
+            pass
+        else:
+            Code.delete(info)
+        code = Code(
+            verification_code=verification_code,
+            phone_number=phone_number,
+            create_time=date_time,
+            expire_time=date_time + timedelta(minutes=30)
+        )
+        code.save()
+        return JsonResponse({"result": 1, 'message': 'Code sent successfully'})
+
+
 
 
 class loginPassWd(View):
@@ -318,7 +351,19 @@ class UserView(View):
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
-        user_name = json_obj['username']
+        phone_number = json_obj['phone_number']
+        password = json_obj['password']
+        verification_code = json_obj['verification_code']
+        info = Code.objects.get(phone_number=phone_number)
+        if info.verification_code == verification_code:
+            user = User(
+                phone_number=phone_number,
+                passwd=password,
+            )
+            user.save()
+            return JsonResponse({'message': 'User registered successfully'})
+        else:
+            return JsonResponse({'result': 0, 'message': "Wrong code"})
 
 
 class PatientDetail(View):
