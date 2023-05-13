@@ -1,9 +1,16 @@
+import hashlib
+
+import jwt
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
+from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, MedicalRecord
+
 import json
+import time
 
 
 # Create your views here.
@@ -221,7 +228,8 @@ class PatientList(View):
 
 
 class UserInfo(View):
-    def get(self, request, user_id):
+    @method_decorator(logging_check)
+    def get(self,request,user_id):
         try:
             data = []
             users = User.objects.filter(user_id=user_id).values('phone_number')
@@ -243,6 +251,68 @@ class UserInfo(View):
             }
             return JsonResponse(response)
 
+
+
+
+class loginPassWd(View):
+    def get(self,request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        if token is None:
+            json_str =request.body
+            json_obj = json.loads(json_str)
+            phone_number = json_obj['phone_number']
+            passwd = json_obj['passwd']
+            m = hashlib.md5()
+            m.update(passwd.encode())
+            md5_pwd = m.hexdigest()
+
+            data_passwd = User.objects.get(phone_number=phone_number).values('passwd')
+            if data_passwd is None:
+                response = {
+                    "result":"0",
+                    "reason":"phone_number is wrong"
+                }
+                return JsonResponse(response)
+            else :
+                if data_passwd == md5_pwd:
+                    response = {
+                        "result": "1",
+                        "reason": "password is wrong",
+                        "token" : make_token(phone_number).decode()
+                    }
+                else:
+                    response = {
+                        "result": "0",
+                        "reason": "password is wrong"
+                    }
+                    return JsonResponse(response)
+        else:
+            try:
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY)
+                response = {
+                    "result": "1",
+                    "reason": "token success"
+                }
+                return JsonResponse(response)
+            except:
+                response = {
+                    "result": "0",
+                    "reason": "token error"
+                }
+                return JsonResponse(response)
+
+
+
+
+
+
+
+
+def make_token(username,expire=3600*24):
+    key = settings.JWT_TOKEN_KEY
+    now_t = time.time
+    payload_data = {'username':username,'exp':now_t+expire}
+    return jwt.encode(payload_data,key,algorithm='HS256')
 
 class UserView(View):
     def post(self, request):
@@ -274,3 +344,4 @@ class PatientDetail(View):
                         "medicalRecord": medical_records_data
                     }]}
         return JsonResponse(response)
+
