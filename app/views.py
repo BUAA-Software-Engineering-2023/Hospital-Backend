@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 
 from tool.logging_dec import logging_check
-from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy,Schedule,Patient,User
+from .models import Department, Doctor, Notification,CarouselMap,News,Vacancy,Schedule,Patient,User,Code
 import json
 import time
 
@@ -300,6 +300,50 @@ class loginPassWd(View):
                 return JsonResponse(response)
 
 
+class loginCode(View):
+    def get(self,request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        if token is None:
+            json_str =request.body
+            json_obj = json.loads(json_str)
+            phone_number = json_obj['phone_number']
+            code = json_obj['code']
+            data_code = Code.objects.get(phone_number=phone_number)
+            if data_code is None:
+                response = {
+                    "result": "0",
+                    "reason": "no token in database"
+                }
+                return JsonResponse(response)
+            else :
+                if code == data_code:
+                    response = {
+                        "result": "1",
+                    }
+                    return JsonResponse(response)
+                else:
+                    response = {
+                        "result": "0",
+                        "reason": "token is false"
+                    }
+                    return JsonResponse(response)
+
+
+
+        else:
+            try:
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY)
+                response = {
+                    "result": "1",
+                    "reason": "token success"
+                }
+                return JsonResponse(response)
+            except:
+                response = {
+                    "result": "0",
+                    "reason": "token error"
+                }
+                return JsonResponse(response)
 
 
 
