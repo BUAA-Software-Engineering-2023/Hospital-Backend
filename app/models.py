@@ -46,6 +46,7 @@ class MedicalRecord(models.Model):
     prescription = models.CharField(max_length=200)
     result = models.CharField(max_length=200)
     advice = models.CharField(max_length=200)
+    medical_record_date = models.DateField(blank=False)
 
 
 class Message(models.Model):
@@ -117,16 +118,19 @@ class Schedule(models.Model):
     schedule_ismorning = models.IntegerField(default=0)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
 
+
 class CarouselMap(models.Model):
     carousel_map_id = models.AutoField(primary_key=True)
     carousel_map_img = models.ImageField()
     carousel_map_link = models.CharField(max_length=100)
+
 
 class News(models.Model):
     news_id = models.AutoField(primary_key=True)
     news_title = models.CharField(max_length=200)
     news_link = models.CharField(max_length=200)
     news_date = models.DateField()
+
 
 class Vacancy_setting(models.Model):
     vacancy_cnt = models.IntegerField(default=10)
