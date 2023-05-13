@@ -170,8 +170,6 @@ class VacancyList(View):
             available = []
             for vacancy in vacancies:
                 available.append({"time":vacancy['start_time'],"num":vacancy['vacancy_count']})
-            # print()
-            print(departmentId)
             data.append({
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
