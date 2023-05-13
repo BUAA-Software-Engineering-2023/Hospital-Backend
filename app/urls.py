@@ -12,4 +12,6 @@ urlpatterns = [
     path('api/patientList/<slug:user_id>', PatientList.as_view()),
     #显示指定用户的用户信息（get）
     path('api/userInfo/<slug:user_id>', UserInfo.as_view()),
+    # path('api/login', UserInfo.as_view()),
+    # path('api/register', UserInfo.as_view()),
 ]
