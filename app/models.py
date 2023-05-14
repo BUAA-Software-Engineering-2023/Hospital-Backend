@@ -7,7 +7,7 @@ class Department(models.Model):
     department_id = models.AutoField(primary_key=True)
     department_name = models.CharField(max_length=20, blank=False)
     department_type = models.CharField(max_length=20, blank=False)
-
+    department_introduction = models.CharField(max_length=255)
 
 class Doctor(models.Model):
     doctor_id = models.AutoField(primary_key=True)
@@ -17,6 +17,7 @@ class Doctor(models.Model):
     doctor_gender = models.CharField(max_length=200)
     doctor_image = models.ImageField(default='')
     doctor_introduction = models.CharField(max_length=200)
+
 
 
 class User(models.Model):
