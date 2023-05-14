@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 
 from django.shortcuts import render
-from app.models import Department, Notification, Vacancy, Appointment, Doctor
+from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave
 from django.views import View
 
 from django.http import HttpResponse, JsonResponse
@@ -89,7 +89,8 @@ class VacancyManage(View):
                     excess_appointments_count = updated_appointments.count() - vacancy_count
                     if excess_appointments_count > 0:
                         # 删除多出的预约记录
-                        excess_appointments = updated_appointments.order_by('-appointment_id')[:excess_appointments_count]
+                        excess_appointments = updated_appointments.order_by('-appointment_id')[
+                                              :excess_appointments_count]
                         for appointment in excess_appointments:
                             appointment.delete()
                         # 更新对应的预约数量
@@ -105,3 +106,31 @@ class VacancyManage(View):
 
         response = {"result": 1, "message": "successfully"}
         return JsonResponse(response)
+
+
+class LeaveList(View):
+    def get(self, request):
+        leaves = Leave.objects.exclude(leave_status='Approved')
+        data = []
+        for leave in leaves:
+            doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
+            data.append({
+                "doctor_name": doctor_name,
+                "start_time": leave.start_time,
+                "end_time": leave.end_time,
+                "type": leave.type,
+                "reason": leave.reseon
+            })
+        return JsonResponse({"result": "1", "data": data})
+
+
+class ProcessLeave(View):
+    def post(self, request, leave_status):
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
+        doctor_id = json_obj['doctor_id']
+        start_time = json_obj['start_time']
+        leave = Leave.objects.filter(doctor_id=doctor_id, start_time=start_time).first()
+        leave.leave_status = leave_status
+        leave.save()
+        return JsonResponse({"result": "1"})
