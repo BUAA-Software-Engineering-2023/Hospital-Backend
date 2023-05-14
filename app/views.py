@@ -295,7 +295,7 @@ class LoginPassWd(View):
             m.update(passwd.encode())
             md5_pwd = m.hexdigest()
 
-            data_passwd = User.objects.get(phone_number=phone_number).passwd
+            data_passwd = User.objects.filter(phone_number=phone_number).first().passwd
             if data_passwd is None:
                 response = {
                     "result": "0",
@@ -342,7 +342,7 @@ class LoginCode(View):
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
             code = json_obj['code']
-            data_code = Code.objects.get(phone_number=phone_number)
+            data_code = Code.objects.filter(phone_number=phone_number).first().data_code
             if data_code is None:
                 response = {
                     "result": "0",
@@ -401,6 +401,7 @@ class UserView(View):
                 user = User(
                     phone_number=phone_number,
                     passwd=md5_pwd,
+                    type="user"
                 )
                 user.save()
                 return JsonResponse({'result': 1, 'message': 'User registered successfully'})
