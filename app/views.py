@@ -1,4 +1,3 @@
-
 import random
 import string
 
@@ -10,10 +9,10 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
-from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User,MedicalRecord,Code
+from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, \
+    MedicalRecord, Code
 from datetime import datetime, timedelta
 from tool.logging_dec import logging_check
-
 
 import json
 import time
@@ -235,7 +234,7 @@ class PatientList(View):
 
 class UserInfo(View):
     @method_decorator(logging_check)
-    def get(self,request,user_id):
+    def get(self, request, user_id):
         try:
             data = []
             users = User.objects.filter(user_id=user_id).values('phone_number')
@@ -283,13 +282,11 @@ class SendCode(View):
         return JsonResponse({"result": 1, 'message': 'Code sent successfully'})
 
 
-
-
 class LoginPassWd(View):
-    def get(self,request):
+    def get(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         if token is None:
-            json_str =request.body
+            json_str = request.body
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
             passwd = json_obj['passwd']
@@ -300,17 +297,17 @@ class LoginPassWd(View):
             data_passwd = User.objects.get(phone_number=phone_number).passwd
             if data_passwd is None:
                 response = {
-                    "result":"0",
-                    "reason":"phone_number is wrong"
+                    "result": "0",
+                    "reason": "phone_number is wrong"
                 }
                 return JsonResponse(response)
-            else :
+            else:
                 if data_passwd == md5_pwd:
-                    token=make_token(phone_number)
+                    token = make_token(phone_number)
                     response = {
                         "result": "1",
                         "reason": "password is wrong",
-                        "data": {"token":token}
+                        "data": {"token": token}
                     }
                     return JsonResponse(response)
                 else:
@@ -337,10 +334,10 @@ class LoginPassWd(View):
 
 
 class LoginCode(View):
-    def get(self,request):
+    def get(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         if token is None:
-            json_str =request.body
+            json_str = request.body
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
             code = json_obj['code']
@@ -351,7 +348,7 @@ class LoginCode(View):
                     "reason": "no token in database"
                 }
                 return JsonResponse(response)
-            else :
+            else:
                 if code == data_code:
                     response = {
                         "result": "1",
@@ -378,11 +375,13 @@ class LoginCode(View):
                 }
                 return JsonResponse(response)
 
-def make_token(username,expire=3600*24):
+
+def make_token(username, expire=3600 * 24):
     key = settings.JWT_TOKEN_KEY
     now_t = time.time()
-    payload_data = {'username':username,'exp':now_t+expire}
-    return jwt.encode(payload_data,key,algorithm='HS256')
+    payload_data = {'username': username, 'exp': now_t + expire}
+    return jwt.encode(payload_data, key, algorithm='HS256')
+
 
 class UserView(View):
     def post(self, request):
@@ -391,19 +390,23 @@ class UserView(View):
         phone_number = json_obj['phone_number']
         password = json_obj['password']
         verification_code = json_obj['verification_code']
-        info = Code.objects.get(phone_number=phone_number)
-        m = hashlib.md5()
-        m.update(password.encode())
-        md5_pwd = m.hexdigest()
-        if info.verification_code == verification_code:
-            user = User(
-                phone_number=phone_number,
-                passwd=md5_pwd,
-            )
-            user.save()
-            return JsonResponse({'message': 'User registered successfully'})
+        info = Code.objects.filter(phone_number=phone_number).first()
+        if info is None:
+            info = Code.objects.get(phone_number=phone_number)
+            m = hashlib.md5()
+            m.update(password.encode())
+            md5_pwd = m.hexdigest()
+            if info.verification_code == verification_code:
+                user = User(
+                    phone_number=phone_number,
+                    passwd=md5_pwd,
+                )
+                user.save()
+                return JsonResponse({'result': 1, 'message': 'User registered successfully'})
+            else:
+                return JsonResponse({'result': 0, 'message': "Wrong code"})
         else:
-            return JsonResponse({'result': 0, 'message': "Wrong code"})
+            return JsonResponse({'result': 0, 'message': 'User already existed'})
 
 
 class PatientDetail(View):
@@ -429,4 +432,3 @@ class PatientDetail(View):
                         "medicalRecord": medical_records_data
                     }]}
         return JsonResponse(response)
-
