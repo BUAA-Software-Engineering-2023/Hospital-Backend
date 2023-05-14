@@ -47,6 +47,7 @@ class DepartmentList(View):
 
 
 class DoctorList(View):
+
     def get(self, request):
         keyword = request.GET.get('keyWord')
 
@@ -130,7 +131,6 @@ class DoctorDetail(View):
 class CarouselMapList(View):
     def get(self, request):
         carousel_maps = CarouselMap.objects.all()
-
         # Serialize notification objects to JSON
         data = []
         for carousel_map in carousel_maps:
@@ -152,7 +152,6 @@ class CarouselMapList(View):
 class NewsList(View):
     def get(self, request):
         news = News.objects.all()
-
         # Serialize notification objects to JSON
         data = []
         for new in news:
@@ -172,6 +171,7 @@ class NewsList(View):
 
 
 class VacancyList(View):
+    @method_decorator(logging_check)
     def get(self, request):
         data = []
         departmentId = request.GET.get('department')
@@ -202,6 +202,7 @@ class VacancyList(View):
 
 
 class PatientList(View):
+    @method_decorator(logging_check)
     def get(self, request, user_id):
         try:
             data = []
@@ -410,6 +411,7 @@ class UserView(View):
 
 
 class PatientDetail(View):
+    @method_decorator(logging_check)
     def get(self, request, patient_id):
         patient = Patient.objects.get(patient_id=patient_id)
         medical_records = MedicalRecord.objects.filter(patient_id=patient_id)
