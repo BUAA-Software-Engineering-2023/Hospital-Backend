@@ -120,3 +120,6 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 JWT_TOKEN_KEY = 'pesenteur'
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW = True
