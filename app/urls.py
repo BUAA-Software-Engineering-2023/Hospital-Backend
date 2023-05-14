@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList, NewsList, VacancyList, DoctorDetail, \
-    PatientList, UserInfo, PatientDetail, UserView, SendCode
+    PatientList, UserInfo, PatientDetail, UserView, SendCode,LoginCode,LoginPassWd
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),
@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/userInfo/<slug:user_id>', UserInfo.as_view()),
     path('api/patientDetail/<slug:patient_id>', PatientDetail.as_view()),
     path('api/sendCode/<slug:phone_number>', SendCode.as_view()),
-    path('api/register/', UserView.as_view()),
-    path('api/login')
+    path('api/register', UserView.as_view()),
+    path('api/loginWithPasswd', LoginPassWd.as_view()),
+    path('api/loginWithCode', LoginCode.as_view())
 ]
