@@ -34,8 +34,7 @@ class Command(BaseCommand):
         for _ in range(5):
             department = Department.objects.create(
                 department_name=fake.word(),
-                department_type=fake.word(),
-                department_introduction=fake.paragraph()
+                department_type=fake.word()
             )
 
     def seed_doctors(self):
