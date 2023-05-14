@@ -9,7 +9,7 @@ def logging_check(func):
         token = request.META.get('HTTP_AUTHORIZATION')
         if token is not None:
             try:
-                jwt_token = jwt.decode(token,settings.JWT_TOKEN_KEY)
+                jwt_token = jwt.decode(token,settings.JWT_TOKEN_KEY,algorithms='HS256')
             except:
                 response ={
                     "result":"0",
