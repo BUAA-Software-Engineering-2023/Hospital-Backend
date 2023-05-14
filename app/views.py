@@ -318,7 +318,8 @@ class LoginPassWd(View):
                     return JsonResponse(response)
         else:
             try:
-                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY)
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY,algorithms='HS256')
+                print(jwt_token)
                 response = {
                     "result": "1",
                     "reason": "token success"
