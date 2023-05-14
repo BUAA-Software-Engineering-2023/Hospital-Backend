@@ -15,5 +15,6 @@ urlpatterns = [
     path('api/userInfo/<slug:user_id>', UserInfo.as_view()),
     path('api/patientDetail/<slug:patient_id>', PatientDetail.as_view()),
     path('api/sendCode/<slug:phone_number>', SendCode.as_view()),
-    path('api/register/', UserView.as_view())
+    path('api/register/', UserView.as_view()),
+    path('api/login')
 ]

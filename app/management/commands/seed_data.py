@@ -22,7 +22,7 @@ class Command(BaseCommand):
         self.seed_messages()
         self.seed_appointments()
         self.seed_notifications()
-        self.seed_codes()
+        # self.seed_codes()
         self.seed_admins()
         self.seed_payments()
         self.seed_vacancies()
