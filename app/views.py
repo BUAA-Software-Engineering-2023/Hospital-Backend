@@ -47,6 +47,7 @@ class DepartmentList(View):
 
 
 class DoctorList(View):
+
     def get(self, request):
         keyword = request.GET.get('keyWord')
 
@@ -130,7 +131,6 @@ class DoctorDetail(View):
 class CarouselMapList(View):
     def get(self, request):
         carousel_maps = CarouselMap.objects.all()
-
         # Serialize notification objects to JSON
         data = []
         for carousel_map in carousel_maps:
@@ -152,7 +152,6 @@ class CarouselMapList(View):
 class NewsList(View):
     def get(self, request):
         news = News.objects.all()
-
         # Serialize notification objects to JSON
         data = []
         for new in news:
@@ -172,6 +171,7 @@ class NewsList(View):
 
 
 class VacancyList(View):
+    @method_decorator(logging_check)
     def get(self, request):
         data = []
         departmentId = request.GET.get('department')
@@ -202,6 +202,7 @@ class VacancyList(View):
 
 
 class PatientList(View):
+    @method_decorator(logging_check)
     def get(self, request, user_id):
         try:
             data = []
@@ -294,7 +295,7 @@ class LoginPassWd(View):
             m.update(passwd.encode())
             md5_pwd = m.hexdigest()
 
-            data_passwd = User.objects.get(phone_number=phone_number).passwd
+            data_passwd = User.objects.filter(phone_number=phone_number).first().passwd
             if data_passwd is None:
                 response = {
                     "result": "0",
@@ -341,7 +342,7 @@ class LoginCode(View):
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
             code = json_obj['code']
-            data_code = Code.objects.get(phone_number=phone_number)
+            data_code = Code.objects.filter(phone_number=phone_number).first().data_code
             if data_code is None:
                 response = {
                     "result": "0",
@@ -400,6 +401,7 @@ class UserView(View):
                 user = User(
                     phone_number=phone_number,
                     passwd=md5_pwd,
+                    type="user"
                 )
                 user.save()
                 return JsonResponse({'result': 1, 'message': 'User registered successfully'})
@@ -410,6 +412,7 @@ class UserView(View):
 
 
 class PatientDetail(View):
+    @method_decorator(logging_check)
     def get(self, request, patient_id):
         patient = Patient.objects.get(patient_id=patient_id)
         medical_records = MedicalRecord.objects.filter(patient_id=patient_id)
