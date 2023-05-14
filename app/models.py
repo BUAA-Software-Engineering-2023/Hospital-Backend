@@ -25,6 +25,7 @@ class User(models.Model):
     phone_number = models.CharField(max_length=200, blank=False)
     passwd = models.CharField(max_length=200)
     avatar = models.ImageField(default='')
+    type = models.CharField(max_length=200)
 
 
 class Patient(models.Model):
@@ -119,6 +120,7 @@ class Schedule(models.Model):
     schedule_day = models.DateField()
     schedule_ismorning = models.IntegerField(default=0)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+
 
 
 class CarouselMap(models.Model):
