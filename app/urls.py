@@ -17,5 +17,5 @@ urlpatterns = [
     path('api/sendCode/<slug:phone_number>', SendCode.as_view()),
     path('api/register', UserView.as_view()),
     path('api/loginWithPasswd', LoginPassWd.as_view()),
-    path('api/loginWithCode', LoginCode.as_view())
+    path('api/loginWithCode', LoginCode.as_view()),
 ]
