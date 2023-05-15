@@ -98,7 +98,7 @@ class Payment(models.Model):
 
 class Vacancy(models.Model):
     vacancy_id = models.BigAutoField(primary_key=True)
-    doctor_id = models.ManyToManyField(Doctor)
+    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     vacancy_count = models.IntegerField(default=100)
     vacancy_left = models.IntegerField(default=100)
     start_time = models.DateTimeField()
@@ -117,8 +117,8 @@ class Leave(models.Model):
 
 class Schedule(models.Model):
     schedule_id = models.BigAutoField(primary_key=True)
-    schedule_day = models.DateField()
-    schedule_ismorning = models.IntegerField(default=0)
+    schedule_day = models.IntegerField()
+    schedule_is_morning = models.IntegerField(default=0)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
 
 

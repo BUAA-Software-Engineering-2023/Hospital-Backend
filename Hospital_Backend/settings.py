@@ -77,7 +77,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'Athebear521989!',
         'HOST': 'localhost',
         'PORT': '3306'
     }
@@ -121,5 +121,3 @@ STATIC_URL = '/static/'
 
 JWT_TOKEN_KEY = 'pesenteur'
 
-APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
-APSCHEDULER_RUN_NOW = True
