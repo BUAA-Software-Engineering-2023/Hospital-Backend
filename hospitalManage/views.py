@@ -342,3 +342,6 @@ class ProcessLeave(View):
         leave.leave_status = leave_status
         leave.save()
         return JsonResponse({"result": "1"})
+
+
+
