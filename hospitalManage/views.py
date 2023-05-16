@@ -360,8 +360,16 @@ class ProcessLeave(View):
                         and schedule.schedule_is_morning == 0):
                     continue
                 else:
-                    request = HttpRequest()
-                    request.method = 'POST'  # 设置请求方法为 POST
+                    date = schedule.schedule_day
+                    vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=leave.doctor_id)
+                    for vacancy in vacancies:
+                        time = vacancy.start_time
+                        is_morning = schedule.schedule_is_morning
+                        if is_morning * 12 < time.hour < is_morning * 12 + 12:
+                            appointments = Appointment.objects.filter(doctor_id=leave.doctor_id, appointment_time=time)
+                            for appointment in appointments:
+                                Appointment.delete(appointment)
+                            Vacancy.delete(vacancy)
                     request.body = f'{{"schedule_id": {schedule.schedule_id}}}'  # 设置请求的 body 数据
                     schedule_manage = ScheduleManage()
                     schedule_manage.delete(request)
