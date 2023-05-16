@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
-    'hospitalManage'
+    'hospitalManage',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -101,6 +102,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CRONJOBS = [
+    # 定时函数每分钟执行一次
+    ('*/1 * * * *', 'hospitalManage.test.case'),
+]
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -121,5 +126,4 @@ STATIC_URL = '/static/'
 
 JWT_TOKEN_KEY = 'pesenteur'
 
-APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
-APSCHEDULER_RUN_NOW = True
+

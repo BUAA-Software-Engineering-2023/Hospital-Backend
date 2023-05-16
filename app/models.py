@@ -117,10 +117,9 @@ class Leave(models.Model):
 
 class Schedule(models.Model):
     schedule_id = models.BigAutoField(primary_key=True)
-    schedule_day = models.DateField()
+    schedule_day = models.IntegerField()
     schedule_ismorning = models.IntegerField(default=0)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-
 
 
 class CarouselMap(models.Model):
