@@ -373,9 +373,11 @@ def vacancy_check(request):
             start_time = vacancy.start_time
             appointments = Appointment.objects.filter(doctor_id_id=doctor_id, appointment_time=start_time)
             for appointment in appointments:
-                patient_id = appointment.patient_id
+                patient_id = appointment.patient_id_id
                 patient = Patient.objects.get(patient_id=patient_id)
-                users = User.objects.filter(patient_id=patient_id)
+                print(patient)
+                users = patient.user_id.all()
+                print(users)
                 for user in users:
                     message = Message(
                         title="Your appointment has canceled",
@@ -385,7 +387,8 @@ def vacancy_check(request):
                         user_id_id=user.user_id
                     )
                     message.save()
+                print(appointment)
                 appointment.appointment_status = "Cancelled"
                 appointment.save()
-            vacancy.delete()
+            # vacancy.delete()
     return JsonResponse({"result": 1})
