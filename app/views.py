@@ -1,21 +1,19 @@
+import hashlib
+import json
 import random
 import string
-
-import hashlib
+import time
+from datetime import datetime, timedelta
 
 import jwt
-from django.shortcuts import render
+from django.conf import settings
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.http import HttpResponse, JsonResponse
-from django.conf import settings
-from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, \
-    MedicalRecord, Code
-from datetime import datetime, timedelta
-from tool.logging_dec import logging_check
 
-import json
-import time
+from tool.logging_dec import logging_check
+from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, \
+    MedicalRecord, Code, Appointment, Leave
 
 
 # Create your views here.
@@ -319,7 +317,7 @@ class LoginPassWd(View):
                     return JsonResponse(response)
         else:
             try:
-                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY,algorithms='HS256')
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 print(jwt_token)
                 response = {
                     "result": "1",
@@ -435,3 +433,106 @@ class PatientDetail(View):
                         "medicalRecord": medical_records_data
                     }]}
         return JsonResponse(response)
+
+
+class MakeAppointment(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        doctor_id = json_obj['doctor_id']
+        start_time = json_obj['start_time']
+        patient_id = json_obj['patient_id']
+        vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
+        try:
+            if vacancy.vacancy_left > 0:
+                vacancy.vacancy_left = vacancy.vacancy_left - 1
+                appointment = Appointment(
+                    appointment_time=start_time,
+                    appointment_status="Scheduled",
+                    doctor_id_id=doctor_id,
+                    patient_id_id=patient_id
+                )
+                appointment.save()
+                vacancy.save()
+                return JsonResponse({"result": 1, "message": "Make appointment successfully"})
+        except:
+            return JsonResponse({"result": 0, "message": "error"})
+
+
+class MakeMedicalRecord(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        doctor_id = json_obj['doctor_id']
+        medical_record_date = json_obj['medical_record_date']
+        patient_id = json_obj['patient_id']
+        department_id = json_obj['department_id']
+        symptom = json_obj['symptom']
+        prescription = json_obj['prescription']
+        result = json_obj['result']
+        advice = json_obj['advice']
+        try:
+            medical_record = MedicalRecord.objects.filter(patient_id_id=patient_id, department_id_id=department_id,
+                                                          doctor_id_id=doctor_id).first()
+            if medical_record:
+                medical_record.medical_record_date = medical_record_date
+                medical_record.advice = advice
+                medical_record.result = result
+                medical_record.symptom = symptom
+                medical_record.prescription = prescription
+            else:
+                medical_record = MedicalRecord(
+                    medical_record_date=medical_record_date,
+                    advice=advice,
+                    result=result,
+                    symptom=symptom,
+                    prescription=prescription,
+                    doctor_id_id=doctor_id,
+                    patient_id_id=patient_id,
+                    department_id_id=department_id
+                )
+            medical_record.save()
+            return JsonResponse({"result": 1, "message": "Make medical record successfully"})
+        except:
+            return JsonResponse({"result": 0, "message": "error"})
+
+
+class MakeLeave(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        doctor_id = json_obj['doctor_id']
+        start_time = json_obj['start_time']
+        end_time = json_obj['end_time']
+        leave_type = json_obj['type']
+        reason = json_obj['reason']
+        try:
+            leave = Leave(
+                doctor_id_id=doctor_id,
+                start_time=start_time,
+                end_time=end_time,
+                type=leave_type,
+                reseon=reason,
+                leave_status="申请中"
+            )
+            leave.save()
+            return JsonResponse({"result": 1, "message": "successfully"})
+        except:
+            return JsonResponse({"result": 0, "message": "error"})
+
+
+class CancelLeave(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        doctor_id = json_obj['doctor_id']
+        start_time = json_obj['start_time']
+        end_time = json_obj['end_time']
+        leave = Leave.objects.filter(doctor_id_id=doctor_id, start_time=start_time, end_time=end_time).first()
+        if leave:
+            leave.delete()
+        return JsonResponse({"result": 1, "message": "successfully"})

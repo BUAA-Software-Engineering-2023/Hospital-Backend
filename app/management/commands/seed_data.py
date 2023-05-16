@@ -160,16 +160,15 @@ class Command(BaseCommand):
             )
 
     def seed_vacancies(self):
-        # Generate vacancy data
-        doctors = Doctor.objects.all()
+        doctors = Doctor.objects.get(doctor_id=1)
         for _ in range(10):
             vacancy = Vacancy.objects.create(
                 vacancy_count=fake.random_int(1, 100),
                 vacancy_left=fake.random_int(0, 100),
                 start_time=fake.date_time(),
-                end_time=fake.date_time()
+                end_time=fake.date_time(),
+                doctor_id=doctors
             )
-            vacancy.doctor_id.set(doctors)
 
     def seed_leaves(self):
         # Generate leave data
@@ -189,7 +188,7 @@ class Command(BaseCommand):
         doctors = Doctor.objects.all()
         for _ in range(10):
             schedule = Schedule.objects.create(
-                schedule_day=fake.date(),
-                schedule_ismorning=fake.random_int(0, 1),
+                schedule_day=fake.random_int(1, 8),
+                schedule_is_morning=fake.random_int(0, 2),
                 doctor_id=doctors[fake.random_int(0, len(doctors) - 1)]
             )

@@ -1,21 +1,21 @@
-
 import hashlib
-from datetime import datetime
 import json
+from datetime import datetime
 
-from django.shortcuts import render
-from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave,Admin,User,Schedule
+from django.http import JsonResponse, HttpRequest
 from django.views import View
 
-from django.http import HttpResponse, JsonResponse
+from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
+    Patient
+
 
 # Create your views here.
 
 class LoginView(View):
-    def get(self,request):
+    def get(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
-        user_name =json_obj['user_name']
+        user_name = json_obj['user_name']
         passwd = json_obj['passwd']
 
         data_passwd = Admin.objects.filter(user_name=user_name).first().password
@@ -39,8 +39,9 @@ class LoginView(View):
                 }
                 return JsonResponse(response)
 
+
 class DoctorManagement(View):
-    def post(self,request):
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         doctor_name = json_obj['doctor_name']
@@ -73,7 +74,8 @@ class DoctorManagement(View):
                 "reason": "phone number exists"
             }
             return JsonResponse(response)
-    def delete(self,request):
+
+    def delete(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         doctor_id = json_obj['doctor_id']
@@ -91,7 +93,7 @@ class DoctorManagement(View):
             }
             return JsonResponse(response)
 
-    def put(self,request):
+    def put(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         doctor_id = json_obj['doctor_id']
@@ -119,30 +121,32 @@ class DoctorManagement(View):
             }
             return JsonResponse(response)
 
+
 class ScheduleManage(View):
-    def get(self,request):
+    def get(self, request):
         try:
             data = []
             doctor_id_list = Doctor.objects.values('doctor_id').distinct()
             for doctor in doctor_id_list:
                 doctor_id = doctor['doctor_id']
                 day = []
-                schedules = Schedule.objects.filter(doctor_id=doctor_id).values('schedule_ismorning',"schedule_day",'schedule_id')
+                schedules = Schedule.objects.filter(doctor_id=doctor_id).values('schedule_ismorning', "schedule_day",
+                                                                                'schedule_id')
                 if schedules is not None:
                     for schedule in schedules:
                         day_data = {
-                            "schedule":schedule['schedule_id'],
-                            "ismorning":schedule['schedule_ismorning'],
-                            "date":schedule['schedule_day']
+                            "schedule": schedule['schedule_id'],
+                            "ismorning": schedule['schedule_ismorning'],
+                            "date": schedule['schedule_day']
                         }
                         day.append(day_data)
 
                 doctors = Doctor.objects.get(doctor_id=doctor_id)
                 info = {
-                    "doctor_id":doctor_id,
+                    "doctor_id": doctor_id,
                     "name": doctors.doctor_name,
                     "department": Department.objects.get(department_id=doctors.department_id_id).department_name,
-                    "day":day
+                    "day": day
                 }
 
                 data.append(info)
@@ -157,7 +161,7 @@ class ScheduleManage(View):
             }
             return JsonResponse(response)
 
-    def post(self,request):
+    def post(self, request):
         try:
             json_str = request.body
             json_obj = json.loads(json_str)
@@ -166,50 +170,52 @@ class ScheduleManage(View):
             date = json_obj['date']
             schedule = Schedule(
                 schedule_day=date,
-                schedule_ismorning = is_morning,
-                doctor_id_id = doctor_id
+                schedule_ismorning=is_morning,
+                doctor_id_id=doctor_id
             )
             schedule.save()
             response = {
                 "result": "1"
             }
+            vacancy_check()
             return JsonResponse(response)
         except:
             response = {
                 "result": "0"
             }
             return JsonResponse(response)
-    def delete(self,request):
+
+    def delete(self, request):
         # try:
-            json_str = request.body
-            json_obj = json.loads(json_str)
-            schedule_id = json_obj['schedule_id']
-            schedule = Schedule.objects.get(schedule_id=schedule_id)
-            doctor_id = schedule.doctor_id
-            is_morning = schedule.schedule_ismorning
-            date = schedule.schedule_day
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        schedule_id = json_obj['schedule_id']
+        schedule = Schedule.objects.get(schedule_id=schedule_id)
+        doctor_id = schedule.doctor_id
+        is_morning = schedule.schedule_is_morning
+        date = schedule.schedule_day
 
-            vacancies = Vacancy.objects.filter(start_time__contains=date,doctor_id=doctor_id)
+        vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id)
 
-            for vacancy in vacancies:
-                time=vacancy.start_time
-                if time.hour>is_morning*12 and time.hour<is_morning*12+12:
-                    appointments = Appointment.objects.filter(doctor_id=doctor_id,appointment_time=time)
-                    for appointment in appointments:
-                        Appointment.delete(appointment)
-                    Vacancy.delete(vacancy)
+        for vacancy in vacancies:
+            time = vacancy.start_time
+            if is_morning * 12 < time.hour < is_morning * 12 + 12:
+                appointments = Appointment.objects.filter(doctor_id=doctor_id, appointment_time=time)
+                for appointment in appointments:
+                    Appointment.delete(appointment)
+                Vacancy.delete(vacancy)
 
-            Schedule.delete(schedule)
-            response = {
-                "result": "1"
-            }
-            return JsonResponse(response)
-        # except:
-        #     response = {
-        #         "result": "0"
-        #     }
-        #     return JsonResponse(response)
-
+        Schedule.delete(schedule)
+        response = {
+            "result": "1"
+        }
+        vacancy_check()
+        return JsonResponse(response)
+    # except:
+    #     response = {
+    #         "result": "0"
+    #     }
+    #     return JsonResponse(response)
 
 
 def MD5(password):
@@ -217,6 +223,8 @@ def MD5(password):
     m.update(password.encode())
     md5_pwd = m.hexdigest()
     return md5_pwd
+
+
 class DepartmentManage(View):
     def post(self, request):
         json_str = request.body
@@ -336,12 +344,69 @@ class ProcessLeave(View):
     def post(self, request, leave_status):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_id']
-        start_time = json_obj['start_time']
-        leave = Leave.objects.filter(doctor_id=doctor_id, start_time=start_time).first()
+        leave_id = json_obj['leave_id']
+        leave = Leave.objects.get(leave_id=leave_id)
         leave.leave_status = leave_status
+        if leave_status == "Approved":
+            schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
+            for schedule in schedules:
+                if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
+                        leave.end_time.weekday() + 1) \
+                        or (
+                        schedule.schedule_day == leave.start_time.weekday() and leave.start_time.hour > 12
+                        and schedule.schedule_is_morning == 1) \
+                        or (
+                        schedule.schedule_day == leave.end_time.weekday() and leave.end_time.hour < 12
+                        and schedule.schedule_is_morning == 0):
+                    continue
+                else:
+                    request = HttpRequest()
+                    request.method = 'POST'  # 设置请求方法为 POST
+                    request.body = f'{{"schedule_id": {schedule.schedule_id}}}'  # 设置请求的 body 数据
+                    schedule_manage = ScheduleManage()
+                    schedule_manage.delete(request)
         leave.save()
         return JsonResponse({"result": "1"})
 
 
+
+def vacancy_check():
+    vacancies = Vacancy.objects.all()
+    print(vacancies)
+    for vacancy in vacancies:
+        doctor_id = vacancy.doctor_id.doctor_id
+        print(doctor_id)
+        weekday = vacancy.start_time.weekday() + 1
+        print(weekday)
+        if vacancy.start_time.hour < 12:
+            is_morning = 1
+        else:
+            is_morning = 0
+        print(is_morning)
+        schedules = Schedule.objects.filter(schedule_day=weekday, doctor_id=doctor_id, schedule_is_morning=is_morning)
+        if schedules.first():
+            continue
+        else:
+            start_time = vacancy.start_time
+            appointments = Appointment.objects.filter(doctor_id_id=doctor_id, appointment_time=start_time)
+            for appointment in appointments:
+                patient_id = appointment.patient_id_id
+                patient = Patient.objects.get(patient_id=patient_id)
+                print(patient)
+                users = patient.user_id.all()
+                print(users)
+                for user in users:
+                    message = Message(
+                        title="Your appointment has canceled",
+                        content=f"很抱歉，由于医生的原因，{patient.patient_name}的预约已取消。",
+                        message_time=datetime.now(),
+                        is_read=0,
+                        user_id_id=user.user_id
+                    )
+                    message.save()
+                print(appointment)
+                appointment.appointment_status = "Cancelled"
+                appointment.save()
+            # vacancy.delete()
+    return JsonResponse({"result": 1})
 
