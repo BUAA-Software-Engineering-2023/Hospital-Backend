@@ -1,21 +1,19 @@
+import hashlib
+import json
 import random
 import string
-
-import hashlib
+import time
+from datetime import datetime, timedelta
 
 import jwt
-from django.shortcuts import render
+from django.conf import settings
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.http import HttpResponse, JsonResponse
-from django.conf import settings
+
+from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, \
     MedicalRecord, Code
-from datetime import datetime, timedelta
-from tool.logging_dec import logging_check
-
-import json
-import time
 
 
 # Create your views here.
