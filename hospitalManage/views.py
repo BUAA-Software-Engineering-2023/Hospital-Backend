@@ -1,13 +1,12 @@
 import hashlib
-from datetime import datetime
 import json
+from datetime import datetime
 
-from django.shortcuts import render
-from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
-    Patient
+from django.http import JsonResponse, HttpRequest
 from django.views import View
 
-from django.http import HttpResponse, JsonResponse
+from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
+    Patient
 
 
 # Create your views here.
@@ -193,14 +192,14 @@ class ScheduleManage(View):
         schedule_id = json_obj['schedule_id']
         schedule = Schedule.objects.get(schedule_id=schedule_id)
         doctor_id = schedule.doctor_id
-        is_morning = schedule.schedule_ismorning
+        is_morning = schedule.schedule_is_morning
         date = schedule.schedule_day
 
         vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id)
 
         for vacancy in vacancies:
             time = vacancy.start_time
-            if time.hour > is_morning * 12 and time.hour < is_morning * 12 + 12:
+            if is_morning * 12 < time.hour < is_morning * 12 + 12:
                 appointments = Appointment.objects.filter(doctor_id=doctor_id, appointment_time=time)
                 for appointment in appointments:
                     Appointment.delete(appointment)
@@ -345,21 +344,38 @@ class ProcessLeave(View):
     def post(self, request, leave_status):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_id']
-        start_time = json_obj['start_time']
-        leave = Leave.objects.filter(doctor_id=doctor_id, start_time=start_time).first()
+        leave_id = json_obj['leave_id']
+        leave = Leave.objects.get(leave_id=leave_id)
         leave.leave_status = leave_status
+        if leave_status == "Approved":
+            schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
+            for schedule in schedules:
+                if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
+                        leave.end_time.weekday() + 1) \
+                        or (
+                        schedule.schedule_day == leave.start_time.weekday() and leave.start_time.hour > 12
+                        and schedule.schedule_is_morning == 1) \
+                        or (
+                        schedule.schedule_day == leave.end_time.weekday() and leave.end_time.hour < 12
+                        and schedule.schedule_is_morning == 0):
+                    continue
+                else:
+                    request = HttpRequest()
+                    request.method = 'POST'  # 设置请求方法为 POST
+                    request.body = f'{{"schedule_id": {schedule.schedule_id}}}'  # 设置请求的 body 数据
+                    schedule_manage = ScheduleManage()
+                    schedule_manage.delete(request)
         leave.save()
         return JsonResponse({"result": "1"})
 
 
-def vacancy_check(request):
+def vacancy_check():
     vacancies = Vacancy.objects.all()
     print(vacancies)
     for vacancy in vacancies:
         doctor_id = vacancy.doctor_id.doctor_id
         print(doctor_id)
-        weekday = vacancy.start_time.weekday()+1
+        weekday = vacancy.start_time.weekday() + 1
         print(weekday)
         if vacancy.start_time.hour < 12:
             is_morning = 1
