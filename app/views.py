@@ -181,15 +181,28 @@ class VacancyList(View):
             vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id).values('vacancy_count',
                                                                                                       'start_time')
             available = []
+            morning_cnt = 0
+            afternoon_cnt = 0
+            morning_judge = False
+            afternoon_judge = False
             for vacancy in vacancies:
-                available.append({"time": vacancy['start_time'], "num": vacancy['vacancy_count']})
+                if vacancy['start_time'].hour < 12:
+                    morning_cnt += vacancy['vacancy_count']
+                    morning_judge = True
+                else:
+                    afternoon_cnt += vacancy['vacancy_count']
+                    afternoon_judge = True
+            if morning_judge:
+                available.append({"is_morning": True,"time": date, "num": morning_cnt})
+            if afternoon_judge:
+                available.append({"is_morning": False, "time": date, "num": afternoon_cnt})
             data.append({
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
                 "department": Department.objects.get(department_id=departmentId).department_name,
                 "image": '',
                 "introduction": doctor_info.doctor_introduction,
-                "available|1-2": available
+                "available": available
             })
 
         response = {
@@ -198,6 +211,34 @@ class VacancyList(View):
         }
         return JsonResponse(response)
 
+class VacancyDetail(View):
+    def get(self,request):
+        try:
+            data = []
+            doctor_id = request.GET.get('doctor_id')
+            date = request.GET.get('date')
+            is_morning = int(request.GET.get('is_morning'))
+
+            vacancies = Vacancy.objects.filter(start_time__contains=date,doctor_id=doctor_id)
+            for vacancy in vacancies:
+                print(type(vacancy.start_time.hour))
+                if (vacancy.start_time.hour<12 and is_morning==1)or(vacancy.start_time.hour>12 and is_morning==0):
+                    info={
+                        "vacancy_id":vacancy.vacancy_id,
+                        "start_time":vacancy.start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "end_time":vacancy.end_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "count":vacancy.vacancy_count
+                    }
+                    data.append(info)
+            response={
+                "result":"1",
+                "data":data
+            }
+            return JsonResponse(response)
+        except:
+            return JsonResponse({
+                "result": "0"
+            })
 
 class PatientList(View):
     @method_decorator(logging_check)
@@ -230,25 +271,66 @@ class PatientList(View):
             }
             return JsonResponse(response)
 
+class PatientWaiting(View):
+    def get(self,request,doctor_id):
+        patient_id_list = Appointment.objects.filter(doctor_id=doctor_id).values('patient_id').distinct()
+        data = []
+        for patient in patient_id_list:
+            patient_id = patient['patient_id']
+            patient_info = Patient.objects.get(patient_id=patient_id)
+            info = {
+                "patient_id":patient_id,
+                "patient_name":patient_info.patient_name,
+            }
+            data.append(info)
+        response = {
+            "result": "1",
+            "data": data
+        }
+        return JsonResponse(response)
 
+class LeaveList(View):
+    def get(self,request,doctor_id):
+        # try:
+            data = []
+            leaves = Leave.objects.filter(doctor_id=doctor_id)
+            for leave in leaves:
+                info = {
+                    "leave_id":leave.leave_id,
+                    "start_time":leave.start_time,
+                    "end_time":leave.end_time,
+                    "type":leave.type,
+                    "reason":leave.reseon,
+                    "leave_status":leave.leave_status
+                }
+                data.append(info)
+            response = {
+                "result": "1",
+                "data":data
+            }
+            return JsonResponse(response)
+        # except:
+        #     return JsonResponse({"result": 0, "message": "error"})
 class UserInfo(View):
     @method_decorator(logging_check)
-    def get(self, request, user_id):
+    def get(self, request):
         try:
+            token = request.META.get('HTTP_AUTHORIZATION')
+            jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+            user_id=User.objects.get(phone_number=jwt_token['username']).user_id
             data = []
             users = User.objects.filter(user_id=user_id).values('phone_number')
             for user in users:
                 info = {
+                    "user_id":user_id,
                     "phone": user['phone_number'],
                 }
                 data.append(info)
-
             response = {
                 "result": "1",
                 "data": data
             }
             return JsonResponse(response)
-
         except:
             response = {
                 "result": "0"
@@ -278,7 +360,7 @@ class SendCode(View):
             expire_time=date_time + timedelta(minutes=30)
         )
         code.save()
-        return JsonResponse({"result": 1, 'message': 'Code sent successfully'})
+        return JsonResponse({"result": 1, 'message': 'Code sent successfully',"vertification_code":verification_code})
 
 
 class LoginPassWd(View):
@@ -318,7 +400,6 @@ class LoginPassWd(View):
         else:
             try:
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
-                print(jwt_token)
                 response = {
                     "result": "1",
                     "reason": "token success"
@@ -349,8 +430,10 @@ class LoginCode(View):
                 return JsonResponse(response)
             else:
                 if code == data_code:
+                    token = make_token(phone_number)
                     response = {
                         "result": "1",
+                        "data": {"token": token}
                     }
                     return JsonResponse(response)
                 else:
@@ -390,7 +473,7 @@ class UserView(View):
         password = json_obj['password']
         verification_code = json_obj['verification_code']
         info = Code.objects.filter(phone_number=phone_number).first()
-        if info is None:
+        if info is not None:
             info = Code.objects.get(phone_number=phone_number)
             m = hashlib.md5()
             m.update(password.encode())
@@ -458,6 +541,23 @@ class MakeAppointment(View):
                 return JsonResponse({"result": 1, "message": "Make appointment successfully"})
         except:
             return JsonResponse({"result": 0, "message": "error"})
+    def delete(self,request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        appointment_id =json_obj['appointment_id']
+        doctor_id = json_obj['doctor_id']
+        start_time = json_obj['start_time']
+        vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
+        try:
+            vacancy.vacancy_left = vacancy.vacancy_left + 1
+            appointment = Appointment.objects.get(appointment_id=appointment_id)
+            Appointment.delete(appointment)
+            Appointment.delete(appointment)
+            vacancy.save()
+            return JsonResponse({"result": 1, "message": "Delete appointment successfully"})
+        except:
+            return JsonResponse({"result": 0, "message": "error"})
+
 
 
 class MakeMedicalRecord(View):
@@ -476,6 +576,10 @@ class MakeMedicalRecord(View):
         try:
             medical_record = MedicalRecord.objects.filter(patient_id_id=patient_id, department_id_id=department_id,
                                                           doctor_id_id=doctor_id).first()
+            appointment_id = medical_record.appointment_id
+            appointment = Appointment.objects.get(appointment_id=appointment_id)
+            appointment.appointment_status="arrival"
+            appointment.save()
             if medical_record:
                 medical_record.medical_record_date = medical_record_date
                 medical_record.advice = advice
@@ -497,6 +601,7 @@ class MakeMedicalRecord(View):
             return JsonResponse({"result": 1, "message": "Make medical record successfully"})
         except:
             return JsonResponse({"result": 0, "message": "error"})
+
 
 
 class MakeLeave(View):
@@ -522,6 +627,17 @@ class MakeLeave(View):
             return JsonResponse({"result": 1, "message": "successfully"})
         except:
             return JsonResponse({"result": 0, "message": "error"})
+    def delete(self,request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        leave_id = json_obj['leave_id']
+        try:
+            leave = Leave.objects.get(leave_id=leave_id)
+            Leave.delete(leave)
+            return JsonResponse({"result": 1, "message": "successfully"})
+        except:
+            return JsonResponse({"result": 0, "message": "error"})
+
 
 
 class CancelLeave(View):
@@ -536,3 +652,5 @@ class CancelLeave(View):
         if leave:
             leave.delete()
         return JsonResponse({"result": 1, "message": "successfully"})
+
+

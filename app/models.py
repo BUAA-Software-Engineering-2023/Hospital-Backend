@@ -38,12 +38,19 @@ class Patient(models.Model):
     absence = models.IntegerField(default=0)
     address = models.CharField(max_length=200)
 
+class Appointment(models.Model):
+    appointment_id = models.AutoField(primary_key=True)
+    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    appointment_time = models.DateTimeField()
+    appointment_status = models.CharField(max_length=200)
 
 class MedicalRecord(models.Model):
     medical_record_id = models.AutoField(primary_key=True)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
+    appointment_id = models.ForeignKey(Appointment,on_delete=models.CASCADE)
     symptom = models.CharField(max_length=200)
     prescription = models.CharField(max_length=200)
     result = models.CharField(max_length=200)
@@ -60,12 +67,7 @@ class Message(models.Model):
     is_read = models.BooleanField()
 
 
-class Appointment(models.Model):
-    appointment_id = models.AutoField(primary_key=True)
-    doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    appointment_time = models.DateTimeField()
-    appointment_status = models.CharField(max_length=200)
+
 
 
 class Notification(models.Model):
@@ -120,7 +122,6 @@ class Schedule(models.Model):
     schedule_day = models.IntegerField()
     schedule_is_morning = models.IntegerField(default=0)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-
 
 
 class CarouselMap(models.Model):

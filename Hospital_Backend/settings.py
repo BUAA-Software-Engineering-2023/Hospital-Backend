@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
-    'hospitalManage'
+    'hospitalManage',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -77,7 +78,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital',
         'USER': 'root',
-        'PASSWORD': 'Athebear521989!',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306'
     }
@@ -101,6 +102,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CRONJOBS = [
+    # 定时函数每分钟执行一次
+    ('*/1 * * * *', 'hospitalManage.test.case'),
+]
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -120,4 +125,3 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 JWT_TOKEN_KEY = 'pesenteur'
-
