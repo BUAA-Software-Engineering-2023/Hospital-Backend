@@ -243,7 +243,6 @@ class DepartmentManage(View):
             return JsonResponse({"result": 1, "message": "department added successfully"})
         else:
             return JsonResponse({"result": 0, "message": "department already existed"})
-
     def delete(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -254,7 +253,6 @@ class DepartmentManage(View):
             return JsonResponse({"result": 1, "message": "Department deleted successfully"})
         else:
             return JsonResponse({"result": 0, "message": "Department not found"})
-
     def put(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -360,6 +358,7 @@ class ProcessLeave(View):
                         and schedule.schedule_is_morning == 0):
                     continue
                 else:
+                    #todo
                     request = HttpRequest()
                     request.method = 'POST'  # 设置请求方法为 POST
                     request.body = f'{{"schedule_id": {schedule.schedule_id}}}'  # 设置请求的 body 数据
