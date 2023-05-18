@@ -379,7 +379,7 @@ class LoginPassWd(View):
             if data_passwd is None:
                 response = {
                     "result": "0",
-                    "reason": "phone_number is wrong"
+                    "reason": "电话号码错误"
                 }
                 return JsonResponse(response)
             else:
@@ -387,30 +387,29 @@ class LoginPassWd(View):
                     token = make_token(phone_number)
                     response = {
                         "result": "1",
-                        "reason": "password is wrong",
                         "data": {"token": token}
                     }
                     return JsonResponse(response)
                 else:
                     response = {
                         "result": "0",
-                        "reason": "password is wrong"
+                        "reason": "密码错误"
                     }
                     return JsonResponse(response)
         else:
             try:
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
-                    "result": "1",
-                    "reason": "token success"
+                    "result": "0",
+                    "reason": "已登录，请勿重复登录"
                 }
                 return JsonResponse(response)
             except:
                 response = {
                     "result": "0",
-                    "reason": "token error"
+                    "reason": "登录状态异常"
                 }
-                return JsonResponse(response)
+                return JsonResponse(response),401
 
 
 class LoginCode(View):
@@ -425,7 +424,7 @@ class LoginCode(View):
             if data_code is None:
                 response = {
                     "result": "0",
-                    "reason": "no token in database"
+                    "reason": "请先获取验证码"
                 }
                 return JsonResponse(response)
             else:
@@ -439,23 +438,23 @@ class LoginCode(View):
                 else:
                     response = {
                         "result": "0",
-                        "reason": "token is false"
+                        "reason": "验证码错误"
                     }
                     return JsonResponse(response)
         else:
             try:
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY)
                 response = {
-                    "result": "1",
-                    "reason": "token success"
+                    "result": "0",
+                    "reason": "已登录，请勿重复登录"
                 }
                 return JsonResponse(response)
             except:
                 response = {
                     "result": "0",
-                    "reason": "token error"
+                    "reason": "登录状态异常"
                 }
-                return JsonResponse(response)
+                return JsonResponse(response),401
 
 
 def make_token(username, expire=3600 * 24):
@@ -485,11 +484,11 @@ class UserView(View):
                     type="user"
                 )
                 user.save()
-                return JsonResponse({'result': 1, 'message': 'User registered successfully'})
+                return JsonResponse({'result': 1, 'reason': '注册成功'})
             else:
-                return JsonResponse({'result': 0, 'message': "Wrong code"})
+                return JsonResponse({'result': 0, 'reason': "验证码错误"})
         else:
-            return JsonResponse({'result': 0, 'message': 'User already existed'})
+            return JsonResponse({'result': 0, 'reason': '手机号已经被注册'})
 
 
 class PatientDetail(View):
