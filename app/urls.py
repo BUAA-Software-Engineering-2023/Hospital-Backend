@@ -14,7 +14,7 @@ urlpatterns = [
     # API endpoint for retrieving details of a specific doctor
     path('api/patientList/<slug:user_id>', PatientList.as_view()),
     # API endpoint for retrieving a list of patients for a specific user
-    path('api/userInfo/<slug:user_id>', UserInfo.as_view()),
+    path('api/userInfo', UserInfo.as_view()),
     # API endpoint for retrieving information of a specific user
     path('api/patientDetail/<slug:patient_id>', PatientDetail.as_view()),
     # API endpoint for retrieving details of a specific patient
@@ -30,6 +30,5 @@ urlpatterns = [
     path('api/leaveList/<slug:doctor_id>', LeaveList.as_view()),
     path('api/vacancyDetail', VacancyDetail.as_view()),
     path('api/patientWaiting/<slug:doctor_id>', PatientWaiting.as_view()),
-    path('api/userID', PatientWaiting.as_view()),
 
 ]
