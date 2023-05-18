@@ -21,7 +21,7 @@ urlpatterns = [
     path('api/sendCode/<slug:phone_number>', SendCode.as_view()),
     # API endpoint for sending verification code to a specific phone number
     path('api/register', UserView.as_view()),  # API endpoint for user registration
-    path('api/loginWithPasswd', LoginPassWd.as_view()),  # API endpoint for user login with password
+    path('api/loginWithPassword', LoginPassWd.as_view()),  # API endpoint for user login with password
     path('api/loginWithCode', LoginCode.as_view()),  # API endpoint for user login with verification code
     path('api/makeAppointment', MakeAppointment.as_view()),
     path('api/makeMedicalrecord', MakeMedicalRecord.as_view()),
