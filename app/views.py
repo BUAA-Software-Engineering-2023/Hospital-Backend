@@ -364,13 +364,13 @@ class SendCode(View):
 
 
 class LoginPassWd(View):
-    def get(self, request):
+    def post(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         if token is None:
             json_str = request.body
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
-            passwd = json_obj['passwd']
+            passwd = json_obj['password']
             m = hashlib.md5()
             m.update(passwd.encode())
             md5_pwd = m.hexdigest()
@@ -413,7 +413,7 @@ class LoginPassWd(View):
 
 
 class LoginCode(View):
-    def get(self, request):
+    def post(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         if token is None:
             json_str = request.body
