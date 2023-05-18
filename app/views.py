@@ -339,7 +339,7 @@ class UserInfo(View):
 
 
 def generate_verification_code():
-    characters = string.digits + string.ascii_letters
+    characters = string.digits
     code = ''.join(random.choice(characters) for _ in range(6))
     return code
 
@@ -360,7 +360,7 @@ class SendCode(View):
             expire_time=date_time + timedelta(minutes=30)
         )
         code.save()
-        return JsonResponse({"result": 1, 'message': 'Code sent successfully',"vertification_code":verification_code})
+        return JsonResponse({"result": "1", 'reason': 'Code sent successfully',"vertification_code":verification_code})
 
 
 class LoginPassWd(View):
@@ -472,8 +472,16 @@ class UserView(View):
         password = json_obj['password']
         verification_code = json_obj['verification_code']
         info = Code.objects.filter(phone_number=phone_number).first()
+        user = User.objects.filter(phone_number=phone_number).first()
+        if user is not None:
+            return JsonResponse({'result': "0", 'reason': '手机号已经被注册'})
         if info is not None:
             info = Code.objects.get(phone_number=phone_number)
+            end_time = info.expire_time
+            format_pattern = '%Y-%m-%d %H:%M:%S'
+            difference = (datetime.strptime(end_time, format_pattern) - datetime.strptime(datetime.now(), format_pattern))
+            if difference < 0:
+                return JsonResponse({'result': "0", 'reason': "验证码过期"})
             m = hashlib.md5()
             m.update(password.encode())
             md5_pwd = m.hexdigest()
@@ -484,11 +492,11 @@ class UserView(View):
                     type="user"
                 )
                 user.save()
-                return JsonResponse({'result': 1, 'reason': '注册成功'})
+                return JsonResponse({'result': "1", 'reason': '注册成功'})
             else:
-                return JsonResponse({'result': 0, 'reason': "验证码错误"})
+                return JsonResponse({'result': "0", 'reason': "验证码错误"})
         else:
-            return JsonResponse({'result': 0, 'reason': '手机号已经被注册'})
+            return JsonResponse({'result': "0", 'reason': '未发送验证码'})
 
 
 class PatientDetail(View):
