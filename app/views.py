@@ -355,6 +355,7 @@ class SendCode(View):
     def get(self, request, phone_number):
         verification_code = generate_verification_code()
         date_time = datetime.now()
+
         info = Code.objects.filter(phone_number=phone_number).first()
         if info is None:
             pass
@@ -367,8 +368,8 @@ class SendCode(View):
             expire_time=date_time + timedelta(minutes=30)
         )
         code.save()
-        return JsonResponse({"result": "1", 'reason': 'Code sent successfully',"vertification_code":verification_code})
-
+        return JsonResponse(
+            {"result": "1", 'reason': 'Code sent successfully', "vertification_code": verification_code})
 
 
 class LoginPassWd(View):
@@ -430,7 +431,7 @@ class LoginCode(View):
             if User.objects.get(phone_number=phone_number) is None:
                 return JsonResponse({"result": "0", "reason": "用户未注册"})
             code = json_obj['code']
-            data_code = Code.objects.filter(phone_number=phone_number).first().data_code
+            data_code = Code.objects.filter(phone_number=phone_number).first()
             if data_code is None:
                 response = {
                     "result": "0",
@@ -438,8 +439,9 @@ class LoginCode(View):
                 }
                 return JsonResponse(response)
             else:
-                if code == data_code:
+                if code == data_code.verification_code:
                     token = make_token(phone_number)
+                    Code.objects.filter(phone_number=phone_number).first().delete()
                     response = {
                         "result": "1",
                         "data": {"token": token}
@@ -489,7 +491,8 @@ class UserView(View):
             info = Code.objects.get(phone_number=phone_number)
             end_time = info.expire_time
             format_pattern = '%Y-%m-%d %H:%M:%S'
-            difference = (datetime.strptime(end_time, format_pattern) - datetime.strptime(datetime.now(), format_pattern))
+            difference = (
+                    datetime.strptime(end_time, format_pattern) - datetime.strptime(datetime.now(), format_pattern))
             if difference < 0:
                 return JsonResponse({'result': "0", 'reason': "验证码过期"})
             m = hashlib.md5()
