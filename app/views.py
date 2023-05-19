@@ -101,17 +101,17 @@ class DoctorDetail(View):
     def get(self, request, doctor_id):
         try:
             doctor = Doctor.objects.get(doctor_id=doctor_id)
-            schedules = Schedule.objects.filter(doctor_id=doctor_id).values('schedule_day')
-            schedules_data = []
-            for schedule in schedules:
-                schedules_data.append(schedule['schedule_day'])
+            vacancies = Vacancy.objects.filter(doctor_id_id=doctor_id)
+            available = []
+            for vacancy in vacancies:
+                available.append(vacancy.start_time)
             data = {
                 "id": doctor.doctor_id,
                 "name": doctor.doctor_name,
                 "department": doctor.department_id.department_name,
                 'image': doctor.doctor_image.url if doctor.doctor_image else None,
                 "introduction": doctor.doctor_introduction,
-                "available": schedules_data
+                "available": available
             }
             response = {
                 "result": 1,
