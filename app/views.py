@@ -31,17 +31,17 @@ class DepartmentList(View):
                     "id": c.get('department_id'),
                     "name": c.get('department_name')
                 })
-            print()
+            print(child)
             type.append({
                 "name": obj.get('department_type'),
                 "children": child
             })
-            response = {
-                'result': 1,
-                'data': data
-            }
-
-            return JsonResponse(response)
+        response = {
+            'result': 1,
+            'data': type
+        }
+        print(response)
+        return JsonResponse(response)
 
 
 class DoctorList(View):
