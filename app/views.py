@@ -458,7 +458,7 @@ class LoginCode(View):
                     return JsonResponse(response)
         else:
             try:
-                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY)
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
                     "result": "0",
                     "reason": "已登录，请勿重复登录"
