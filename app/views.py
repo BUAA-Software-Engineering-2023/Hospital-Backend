@@ -493,10 +493,7 @@ class UserView(View):
         if info is not None:
             info = Code.objects.get(phone_number=phone_number)
             end_time = info.expire_time
-            format_pattern = '%Y-%m-%d %H:%M:%S'
-            difference = (
-                    datetime.strptime(end_time, format_pattern) - datetime.strptime(datetime.now(), format_pattern))
-            if difference < 0:
+            if datetime.now() > end_time:
                 return JsonResponse({'result': "0", 'reason': "验证码过期"})
             m = hashlib.md5()
             m.update(password.encode())
