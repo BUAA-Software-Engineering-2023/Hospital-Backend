@@ -2,7 +2,8 @@ from django.urls import path
 from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList, NewsList, VacancyList, DoctorDetail, \
     PatientList, UserInfo, PatientDetail, UserView, SendCode, LoginCode, LoginPassWd, MakeAppointment, MakeMedicalRecord \
     , MakeLeave, CancelLeave, LeaveList, VacancyDetail, PatientWaiting, PatientAppointment, CancelAppointment, \
-    GetMedicalRecord
+    GetMedicalRecord,AddPatient,DeletePatient,UpdatePatient
+
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),  # API endpoint for retrieving a list of departments
@@ -34,4 +35,7 @@ urlpatterns = [
     path('api/patientWaiting/<slug:doctor_id>', PatientWaiting.as_view()),
     path('api/getMedicalRecord/<slug:patient_id>', GetMedicalRecord.as_view()),
     path('api/patientAppointment/<slug:patient_id>', PatientAppointment.as_view()),
+    path('api/addPatient', AddPatient.as_view()),
+    path('api/deletePatient', DeletePatient.as_view()),
+    path('api/updatePatient', UpdatePatient.as_view())
 ]

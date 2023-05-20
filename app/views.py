@@ -121,7 +121,7 @@ class DoctorDetail(View):
         except Doctor.DoesNotExist:
             response = {
                 "result": "0",
-                "message": "Doctor does not exist."
+                "message": "医生不存在"
             }
             return JsonResponse(response)
 
@@ -373,7 +373,7 @@ class SendCode(View):
         )
         code.save()
         return JsonResponse(
-            {"result": "1", 'reason': 'Code sent successfully', "vertification_code": verification_code})
+            {"result": "1", 'reason': '验证码发送成功', "vertification_code": verification_code})
 
 
 class LoginPassWd(View):
@@ -524,7 +524,7 @@ class PatientDetail(View):
                         "gender": patient.patient_gender,
                         "absence": patient.absence,
                         "address": patient.address,
-                        "age":patient.age
+                        "age": patient.age
                     }]}
         return JsonResponse(response)
 
@@ -549,9 +549,9 @@ class MakeAppointment(View):
                 )
                 appointment.save()
                 vacancy.save()
-                return JsonResponse({"result": "1", "message": "Make appointment successfully"})
+                return JsonResponse({"result": "1", "message": "预约成功！"})
         except:
-            return JsonResponse({"result": "0", "message": "error"})
+            return JsonResponse({"result": "0", "message": "出错了..."})
 
 
 class CancelAppointment(View):
@@ -560,8 +560,8 @@ class CancelAppointment(View):
         json_str = request.body
         json_obj = json.loads(json_str)
         appointment_id = json_obj['appointment_id']
-        doctor_id = json_obj['doctor_id']
-        start_time = json_obj['start_time']
+        doctor_id = Appointment.objects.get(appointment_id=appointment_id).doctor_id_id
+        start_time = Appointment.objects.get(appointment_id=appointment_id).appointment_time
         vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
         try:
             vacancy.vacancy_left = vacancy.vacancy_left + 1
@@ -569,9 +569,9 @@ class CancelAppointment(View):
             Appointment.delete(appointment)
             Appointment.delete(appointment)
             vacancy.save()
-            return JsonResponse({"result": "1", "message": "Delete appointment successfully"})
+            return JsonResponse({"result": "1", "message": "取消预约成功！"})
         except:
-            return JsonResponse({"result": "0", "message": "error"})
+            return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
 class MakeMedicalRecord(View):
@@ -612,9 +612,9 @@ class MakeMedicalRecord(View):
                     department_id_id=department_id
                 )
             medical_record.save()
-            return JsonResponse({"result": "1", "message": "Make medical record successfully"})
+            return JsonResponse({"result": "1", "message": "开具处方成功！"})
         except:
-            return JsonResponse({"result": "0", "message": "error"})
+            return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
 class MakeLeave(View):
@@ -637,9 +637,9 @@ class MakeLeave(View):
                 leave_status="申请中"
             )
             leave.save()
-            return JsonResponse({"result": "1", "message": "successfully"})
+            return JsonResponse({"result": "1", "message": "请假申请成功！"})
         except:
-            return JsonResponse({"result": "0", "message": "error"})
+            return JsonResponse({"result": "0", "message": "出错啦！"})
 
     def delete(self, request):
         json_str = request.body
@@ -648,9 +648,9 @@ class MakeLeave(View):
         try:
             leave = Leave.objects.get(leave_id=leave_id)
             Leave.delete(leave)
-            return JsonResponse({"result": "1", "message": "请假成功！"})
+            return JsonResponse({"result": "1", "message": "删除请假成功！"})
         except:
-            return JsonResponse({"result": "0", "message": "error"})
+            return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
 class CancelLeave(View):
@@ -677,7 +677,8 @@ class PatientAppointment(View):
             doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
             department = Department.objects.get(department_id=doctor.department_id_id)
             appointment_time = appointment.appointment_time.strftime("%Y-%m-%d %H:%M")
-            data.append({"appointment_time": appointment_time, "appointment_status": appointment.
+            data.append({"appointment_id":appointment.appointment_id,"appointment_time": appointment_time,
+                         "appointment_status": appointment.
                         appointment_status, "doctor_name": doctor.doctor_name, "department_name": department.
                         department_name})
         return JsonResponse({"result": "1", "data": data})
@@ -692,13 +693,89 @@ class GetMedicalRecord(View):
             doctor = Doctor.objects.get(doctor_id=medical_record.doctor_id_id)
             print(doctor)
             result = {
-                      "medical_record_date": medical_record.medical_record_date,
-                      "department_name": Department.objects.get(department_id=doctor.department_id_id).department_name,
-                      "doctor_name": doctor.doctor_name,
-                      "symptom": medical_record.symptom,
-                      "advice": medical_record.advice,
-                      "prescription": medical_record.prescription,
-                      "result": medical_record.result
-                      }
+                "medical_record_date": medical_record.medical_record_date,
+                "department_name": Department.objects.get(department_id=doctor.department_id_id).department_name,
+                "doctor_name": doctor.doctor_name,
+                "symptom": medical_record.symptom,
+                "advice": medical_record.advice,
+                "prescription": medical_record.prescription,
+                "result": medical_record.result
+            }
             data.append(result)
         return JsonResponse({"result": "1", "data": data})
+
+
+def calculate_age(id_card_number):
+    birth_year = int(id_card_number[6:10])
+    birth_month = int(id_card_number[10:12])
+    birth_day = int(id_card_number[12:14])
+
+    current_date = datetime.now()
+    current_year = current_date.year
+    current_month = current_date.month
+    current_day = current_date.day
+
+    age = current_year - birth_year
+
+    # 检查是否已经过了生日
+    if (current_month, current_day) < (birth_month, birth_day):
+        age -= 1
+
+    return age
+
+
+class AddPatient(View):
+    def post(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        patient_name = json_obj['patient_name']
+        patient_gender = json_obj['patient_gender']
+        patient_identification = json_obj['patient_identification']
+        phone_number = json_obj['phone_number']
+        address = json_obj['address']
+        age = calculate_age(patient_identification)
+        try:
+            patient = Patient(
+                patient_identification=patient_identification,
+                phone_number=phone_number,
+                patient_gender=patient_gender,
+                address=address,
+                patient_name=patient_name,
+                age=age
+            )
+            patient.save()
+            return JsonResponse({"result": "1", "message": "添加患者成功！"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
+
+
+class DeletePatient(View):
+    def delete(self, request, patient_id):
+        patient = Patient.objects.get(patient_id=patient_id)
+        try:
+            patient.delete()
+            return JsonResponse({"result": "1", "message": "删除患者成功！"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
+
+
+class UpdatePatient(View):
+    def put(self, request, patient_id):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        patient_name = json_obj['patient_name']
+        patient_gender = json_obj['patient_gender']
+        patient_identification = json_obj['patient_identification']
+        phone_number = json_obj['phone_number']
+        address = json_obj['address']
+        try:
+            patient = Patient.objects.get(patient_id=patient_id)
+            patient.patient_name = patient_name
+            patient.patient_gender = patient_gender
+            patient.identification = patient_identification
+            patient.phone_number = phone_number
+            patient.address = address
+            return JsonResponse({"result": "1", "message": "更新患者信息成功！"})
+
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
