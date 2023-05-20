@@ -37,7 +37,7 @@ class DepartmentList(View):
                 "children": child
             })
         response = {
-            'result': 1,
+            'result': "1",
             'data': type
         }
         print(response)
@@ -68,7 +68,7 @@ class DoctorList(View):
             data.append(doctor_data)
 
         response = {
-            'result': 1,
+            'result': "1",
             'data': data
         }
 
@@ -91,7 +91,7 @@ class NotificationList(View):
             data.append(notification_data)
 
         response = {
-            'result': 1,
+            'result': "1",
             'data': data
         }
         return JsonResponse(response)
@@ -114,13 +114,13 @@ class DoctorDetail(View):
                 "available": available
             }
             response = {
-                "result": 1,
+                "result": "1",
                 "data": data
             }
             return JsonResponse(response)
         except Doctor.DoesNotExist:
             response = {
-                "result": 0,
+                "result": "0",
                 "message": "Doctor does not exist."
             }
             return JsonResponse(response)
@@ -141,7 +141,7 @@ class CarouselMapList(View):
             data.append(carousel_map_data)
 
         response = {
-            'result': 1,
+            'result': "1",
             'data': data
         }
         return JsonResponse(response)
@@ -162,7 +162,7 @@ class NewsList(View):
             data.append(news_data)
 
         response = {
-            'result': 1,
+            'result': "1",
             'data': data
         }
         return JsonResponse(response)
@@ -558,11 +558,14 @@ class MakeAppointment(View):
                 )
                 appointment.save()
                 vacancy.save()
-                return JsonResponse({"result": 1, "message": "Make appointment successfully"})
+                return JsonResponse({"result": "1", "message": "Make appointment successfully"})
         except:
-            return JsonResponse({"result": 0, "message": "error"})
+            return JsonResponse({"result": "0", "message": "error"})
 
-    def delete(self, request):
+
+class CancelAppointment(View):
+    @method_decorator(logging_check)
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         appointment_id = json_obj['appointment_id']
@@ -575,9 +578,9 @@ class MakeAppointment(View):
             Appointment.delete(appointment)
             Appointment.delete(appointment)
             vacancy.save()
-            return JsonResponse({"result": 1, "message": "Delete appointment successfully"})
+            return JsonResponse({"result": "1", "message": "Delete appointment successfully"})
         except:
-            return JsonResponse({"result": 0, "message": "error"})
+            return JsonResponse({"result": "0", "message": "error"})
 
 
 class MakeMedicalRecord(View):
@@ -618,9 +621,9 @@ class MakeMedicalRecord(View):
                     department_id_id=department_id
                 )
             medical_record.save()
-            return JsonResponse({"result": 1, "message": "Make medical record successfully"})
+            return JsonResponse({"result": "1", "message": "Make medical record successfully"})
         except:
-            return JsonResponse({"result": 0, "message": "error"})
+            return JsonResponse({"result": "0", "message": "error"})
 
 
 class MakeLeave(View):
@@ -643,9 +646,9 @@ class MakeLeave(View):
                 leave_status="申请中"
             )
             leave.save()
-            return JsonResponse({"result": 1, "message": "successfully"})
+            return JsonResponse({"result": "1", "message": "successfully"})
         except:
-            return JsonResponse({"result": 0, "message": "error"})
+            return JsonResponse({"result": "0", "message": "error"})
 
     def delete(self, request):
         json_str = request.body
@@ -654,9 +657,9 @@ class MakeLeave(View):
         try:
             leave = Leave.objects.get(leave_id=leave_id)
             Leave.delete(leave)
-            return JsonResponse({"result": 1, "message": "successfully"})
+            return JsonResponse({"result": "1", "message": "successfully"})
         except:
-            return JsonResponse({"result": 0, "message": "error"})
+            return JsonResponse({"result": "0", "message": "error"})
 
 
 class CancelLeave(View):
@@ -670,7 +673,7 @@ class CancelLeave(View):
         leave = Leave.objects.filter(doctor_id_id=doctor_id, start_time=start_time, end_time=end_time).first()
         if leave:
             leave.delete()
-        return JsonResponse({"result": 1, "message": "successfully"})
+        return JsonResponse({"result": "1", "message": "successfully"})
 
 
 class PatientAppointment(View):
