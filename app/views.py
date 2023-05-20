@@ -421,7 +421,7 @@ class LoginPassWd(View):
                     "result": "0",
                     "reason": "登录状态异常"
                 }
-                return JsonResponse(response), 401
+                return JsonResponse(response, status=401)
 
 
 class LoginCode(View):
@@ -469,7 +469,7 @@ class LoginCode(View):
                     "result": "0",
                     "reason": "登录状态异常"
                 }
-                return JsonResponse(response), 401
+                return JsonResponse(response, status=401)
 
 
 def make_token(username, expire=3600 * 24):
