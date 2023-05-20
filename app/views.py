@@ -245,8 +245,11 @@ class VacancyDetail(View):
 
 class PatientList(View):
     @method_decorator(logging_check)
-    def get(self, request, user_id):
+    def get(self, request):
         try:
+            token = request.META.get('HTTP_AUTHORIZATION')
+            jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+            user_id = User.objects.get(phone_number=jwt_token['username']).user_id
             data = []
             patients = Patient.objects.filter(user_id=user_id).values('patient_gender', 'patient_name', 'phone_number',
                                                                       'identification', 'absence', 'address',
@@ -671,3 +674,18 @@ class CancelLeave(View):
         if leave:
             leave.delete()
         return JsonResponse({"result": 1, "message": "successfully"})
+
+
+class PatientAppointment(View):
+    # @method_decorator(logging_check)
+    def get(self, request, patient_id):
+        appointments = Appointment.objects.filter(patient_id_id=patient_id)
+        print(appointments)
+        data = []
+        for appointment in appointments:
+            doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
+            department = Department.objects.get(department_id=doctor.department_id_id)
+            data.append({"appointment_time": appointment.appointment_time, "appointment_status": appointment.
+                        appointment_status, "doctor_name": doctor.doctor_name, "department_name": department.
+                        department_name})
+        return JsonResponse({"result": "1", "data": data})

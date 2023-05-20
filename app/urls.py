@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList, NewsList, VacancyList, DoctorDetail, \
     PatientList, UserInfo, PatientDetail, UserView, SendCode, LoginCode, LoginPassWd, MakeAppointment, MakeMedicalRecord \
-    , MakeLeave, CancelLeave,LeaveList,VacancyDetail,PatientWaiting
+    , MakeLeave, CancelLeave, LeaveList, VacancyDetail, PatientWaiting, PatientAppointment
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),  # API endpoint for retrieving a list of departments
@@ -12,7 +12,7 @@ urlpatterns = [
     path('api/vacancyList', VacancyList.as_view()),  # API endpoint for retrieving a list of vacancies
     path('api/doctorDetail/<slug:doctor_id>', DoctorDetail.as_view()),
     # API endpoint for retrieving details of a specific doctor
-    path('api/patientList/<slug:user_id>', PatientList.as_view()),
+    path('api/patientList/', PatientList.as_view()),
     # API endpoint for retrieving a list of patients for a specific user
     path('api/userInfo', UserInfo.as_view()),
     # API endpoint for retrieving information of a specific user
@@ -30,5 +30,5 @@ urlpatterns = [
     path('api/leaveList/<slug:doctor_id>', LeaveList.as_view()),
     path('api/vacancyDetail', VacancyDetail.as_view()),
     path('api/patientWaiting/<slug:doctor_id>', PatientWaiting.as_view()),
-
+    path('api/patientAppointment/<slug:patient_id>', PatientAppointment.as_view()),
 ]
