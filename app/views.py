@@ -229,7 +229,8 @@ class VacancyDetail(View):
                         "vacancy_id": vacancy.vacancy_id,
                         "start_time": vacancy.start_time.strftime("%Y-%m-%d %H:%M:%S"),
                         "end_time": vacancy.end_time.strftime("%Y-%m-%d %H:%M:%S"),
-                        "count": vacancy.vacancy_count
+                        "count": vacancy.vacancy_count,
+                        "left": vacancy.vacancy_left
                     }
                     data.append(info)
             response = {
