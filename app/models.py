@@ -9,6 +9,7 @@ class Department(models.Model):
     department_type = models.CharField(max_length=20, blank=False)
     department_introduction = models.CharField(max_length=255)
 
+
 class Doctor(models.Model):
     doctor_id = models.AutoField(primary_key=True)
     department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
@@ -17,7 +18,6 @@ class Doctor(models.Model):
     doctor_gender = models.CharField(max_length=200)
     doctor_image = models.ImageField(default='')
     doctor_introduction = models.CharField(max_length=200)
-
 
 
 class User(models.Model):
@@ -37,6 +37,8 @@ class Patient(models.Model):
     phone_number = models.CharField(max_length=200, blank=False)
     absence = models.IntegerField(default=0)
     address = models.CharField(max_length=200)
+    age = models.IntegerField(default=0)
+
 
 class Appointment(models.Model):
     appointment_id = models.AutoField(primary_key=True)
@@ -45,12 +47,13 @@ class Appointment(models.Model):
     appointment_time = models.DateTimeField()
     appointment_status = models.CharField(max_length=200)
 
+
 class MedicalRecord(models.Model):
     medical_record_id = models.AutoField(primary_key=True)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
-    appointment_id = models.ForeignKey(Appointment,on_delete=models.CASCADE)
+    appointment_id = models.ForeignKey(Appointment, on_delete=models.CASCADE)
     symptom = models.CharField(max_length=200)
     prescription = models.CharField(max_length=200)
     result = models.CharField(max_length=200)
@@ -65,9 +68,6 @@ class Message(models.Model):
     content = models.CharField(max_length=200)
     message_time = models.DateField(blank=False)
     is_read = models.BooleanField()
-
-
-
 
 
 class Notification(models.Model):
