@@ -517,16 +517,6 @@ class PatientDetail(View):
     @method_decorator(logging_check)
     def get(self, request, patient_id):
         patient = Patient.objects.get(patient_id=patient_id)
-        medical_records = MedicalRecord.objects.filter(patient_id=patient_id)
-        medical_records_data = []
-        for medical_record in medical_records:
-            medical_records_data.append({
-                "medical_record_date": medical_record.medical_record_date,
-                "symptom": medical_record.symptom,
-                "prescription": medical_record.prescription,
-                "result": medical_record.result,
-                "advice": medical_record.advice,
-            })
         response = {"result": 1,
                     "data": [{
                         "id": patient.patient_id,
@@ -534,7 +524,7 @@ class PatientDetail(View):
                         "gender": patient.patient_gender,
                         "absence": patient.absence,
                         "address": patient.address,
-                        "medicalRecord": medical_records_data
+                        "age":patient.age
                     }]}
         return JsonResponse(response)
 
@@ -658,7 +648,7 @@ class MakeLeave(View):
         try:
             leave = Leave.objects.get(leave_id=leave_id)
             Leave.delete(leave)
-            return JsonResponse({"result": "1", "message": "successfully"})
+            return JsonResponse({"result": "1", "message": "请假成功！"})
         except:
             return JsonResponse({"result": "0", "message": "error"})
 
@@ -674,7 +664,7 @@ class CancelLeave(View):
         leave = Leave.objects.filter(doctor_id_id=doctor_id, start_time=start_time, end_time=end_time).first()
         if leave:
             leave.delete()
-        return JsonResponse({"result": "1", "message": "successfully"})
+        return JsonResponse({"result": "1", "message": "取消预约成功！"})
 
 
 class PatientAppointment(View):
@@ -686,7 +676,29 @@ class PatientAppointment(View):
         for appointment in appointments:
             doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
             department = Department.objects.get(department_id=doctor.department_id_id)
-            data.append({"appointment_time": appointment.appointment_time, "appointment_status": appointment.
+            appointment_time = appointment.appointment_time.strftime("%Y-%m-%d %H:%M")
+            data.append({"appointment_time": appointment_time, "appointment_status": appointment.
                         appointment_status, "doctor_name": doctor.doctor_name, "department_name": department.
                         department_name})
+        return JsonResponse({"result": "1", "data": data})
+
+
+class GetMedicalRecord(View):
+    def get(self, request, patient_id):
+        medical_records = MedicalRecord.objects.filter(patient_id_id=patient_id)
+        patient = Patient.objects.get(patient_id=patient_id)
+        data = []
+        for medical_record in medical_records:
+            doctor = Doctor.objects.get(doctor_id=medical_record.doctor_id_id)
+            print(doctor)
+            result = {
+                      "medical_record_date": medical_record.medical_record_date,
+                      "department_name": Department.objects.get(department_id=doctor.department_id_id).department_name,
+                      "doctor_name": doctor.doctor_name,
+                      "symptom": medical_record.symptom,
+                      "advice": medical_record.advice,
+                      "prescription": medical_record.prescription,
+                      "result": medical_record.result
+                      }
+            data.append(result)
         return JsonResponse({"result": "1", "data": data})
