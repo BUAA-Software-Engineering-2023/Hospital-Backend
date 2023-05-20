@@ -243,6 +243,7 @@ class DepartmentManage(View):
             return JsonResponse({"result": 1, "message": "department added successfully"})
         else:
             return JsonResponse({"result": 0, "message": "department already existed"})
+
     def delete(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -253,6 +254,7 @@ class DepartmentManage(View):
             return JsonResponse({"result": 1, "message": "Department deleted successfully"})
         else:
             return JsonResponse({"result": 0, "message": "Department not found"})
+
     def put(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -283,7 +285,7 @@ class NotificationManage(View):
             notification_link=notification_link
         )
         notification.save()
-        return JsonResponse({"result": 1, "message": "Notification created successfully"})
+        return JsonResponse({"result": 1, "message": "通知成功发送"})
 
 
 class VacancyManage(View):
@@ -318,7 +320,7 @@ class VacancyManage(View):
                 updated_vacancy.vacancy_count = vacancy_count
                 updated_vacancy.save()
 
-        response = {"result": 1, "message": "successfully"}
+        response = {"result": 1, "message": "放号数量修改"}
         return JsonResponse(response)
 
 
@@ -358,7 +360,7 @@ class ProcessLeave(View):
                         and schedule.schedule_is_morning == 0):
                     continue
                 else:
-                    #todo
+                    # todo
                     request = HttpRequest()
                     request.method = 'POST'  # 设置请求方法为 POST
                     date = schedule.schedule_day
@@ -376,7 +378,6 @@ class ProcessLeave(View):
                     schedule_manage.delete(request)
         leave.save()
         return JsonResponse({"result": "1"})
-
 
 
 def vacancy_check():
@@ -416,6 +417,5 @@ def vacancy_check():
                 print(appointment)
                 appointment.appointment_status = "Cancelled"
                 appointment.save()
-            # vacancy.delete()
-    return JsonResponse({"result": 1})
-
+            vacancy.delete()
+    return JsonResponse({"result": "1"})
