@@ -17,7 +17,7 @@ class LoginView(View):
         json_obj = json.loads(json_str)
         user_name = json_obj['username']
         passwd = json_obj['password']
-        admin = Admin.objects.filter(user_name=user_name).first()
+        admin = Admin.objects.filter(username=user_name).first()
         if admin is None:
             response = {
                 "result": "0",
