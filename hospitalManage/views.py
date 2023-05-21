@@ -43,7 +43,7 @@ class LoginView(View):
                 if passwd == data_passwd:
                     response = {
                         "result": "1",
-                        "token": token,
+                        "data": {"token": token},
                         "reason": "登录成功！"
                     }
                     return JsonResponse(response)
