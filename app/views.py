@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from tool.logging_dec import logging_check
-from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Schedule, Patient, User, \
+from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Patient, User, \
     MedicalRecord, Code, Appointment, Leave
 
 
@@ -743,8 +743,15 @@ class AddPatient(View):
         user = User.objects.get(user_id=user_id)
         patient_name = json_obj['patient_name']
         patient_identification = json_obj['identification']
-        phone_number = json_obj['phone_number']
-        address = json_obj['address']
+        keys = json_obj.keys()
+        if 'phone_number' in keys:
+            phone_number = json_obj['phone_number']
+        else:
+            phone_number = None
+        if 'address' in keys:
+            address = json_obj['address']
+        else:
+            address = None
         age = calculate_age(patient_identification)
         patient_gender = get_gender(patient_identification)
         print(patient_identification)
@@ -771,18 +778,24 @@ class AddPatient(View):
 
 class DeletePatient(View):
     @method_decorator(logging_check)
-    def delete(self, request, patient_id):
-        patient = Patient.objects.get(patient_id=patient_id)
-        try:
-            token = request.META.get('HTTP_AUTHORIZATION')
-            jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
-            user_id = User.objects.get(phone_number=jwt_token['username']).user_id
-            user = User.objects.get(user_id=user_id)
-            user.patient_set.remove(patient)
+    def delete(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        patient_id_list = json_obj['patient_ids']
+        for patient_id in patient_id_list:
+            try:
+                patient = Patient.objects.get(patient_id=patient_id)
+                token = request.META.get('HTTP_AUTHORIZATION')
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+                user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+                user = User.objects.get(user_id=user_id)
+                user.patient_set.remove(patient)
+            except Patient.DoesNotExist:
+                return JsonResponse({"result": "0", "message": f"患者ID {patient_id} 不存在！"})
+            except:
+                return JsonResponse({"result": "0", "message": "出错啦！"})
 
-            return JsonResponse({"result": "1", "message": "删除患者成功！"})
-        except:
-            return JsonResponse({"result": "0", "message": "出错啦！"})
+        return JsonResponse({"result": "1", "message": "删除患者成功！"})
 
 
 class UpdatePatient(View):

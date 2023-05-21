@@ -11,5 +11,5 @@ urlpatterns = [
     path('api/vacancyManage', VacancyManage.as_view()),
     path('api/leaveList', LeaveList.as_view()),
     path('api/processLeave/<slug:leave_status>', ProcessLeave.as_view()),
-    path('api/testcheck', vacancy_check)
+    path('api/testcheck', vacancy_check),
 ]
