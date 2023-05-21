@@ -754,10 +754,8 @@ class AddPatient(View):
             address = None
         age = calculate_age(patient_identification)
         patient_gender = get_gender(patient_identification)
-        print(patient_identification)
         try:
             patient = Patient.objects.filter(identification=patient_identification).first()
-            print(patient)
             if patient is None:
                 patient = Patient(
                     identification=patient_identification,
