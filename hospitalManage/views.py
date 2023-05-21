@@ -12,20 +12,20 @@ from app.models import Department, Notification, Vacancy, Appointment, Doctor, L
 # Create your views here.
 
 class LoginView(View):
-    def get(self, request):
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
-        user_name = json_obj['user_name']
-        passwd = json_obj['passwd']
-
-        data_passwd = Admin.objects.filter(user_name=user_name).first().password
-        if data_passwd is None:
+        user_name = json_obj['username']
+        passwd = json_obj['password']
+        admin = Admin.objects.filter(user_name=user_name).first()
+        if admin is None:
             response = {
                 "result": "0",
                 "reason": "admin not exist"
             }
             return JsonResponse(response)
         else:
+            data_passwd = Admin.objects.filter(user_name=user_name).first().password
             if MD5(passwd) == data_passwd:
                 response = {
                     "result": "1",
