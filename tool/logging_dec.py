@@ -15,7 +15,7 @@ def logging_check(func):
                     "result": "0",
                     "reason": "token error"
                 }
-                return JsonResponse(response)
+                return JsonResponse(response, status=401)
 
         return func(request, *args, **kwargs)
 
