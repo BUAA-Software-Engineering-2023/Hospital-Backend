@@ -86,7 +86,7 @@ class Code(models.Model):
 
 
 class Admin(models.Model):
-    notification_id = models.BigAutoField(primary_key=True)
+    admin_id = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
 
