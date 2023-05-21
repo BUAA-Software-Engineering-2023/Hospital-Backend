@@ -34,9 +34,9 @@ class Patient(models.Model):
     patient_name = models.CharField(max_length=200, blank=False)
     patient_gender = models.CharField(max_length=200)
     identification = models.CharField(max_length=200)
-    phone_number = models.CharField(max_length=200, blank=False)
+    phone_number = models.CharField(max_length=200,null=True, blank=True)
     absence = models.IntegerField(default=0)
-    address = models.CharField(max_length=200)
+    address = models.CharField(max_length=200,null=True, blank=True)
     age = models.IntegerField(default=0)
 
 
