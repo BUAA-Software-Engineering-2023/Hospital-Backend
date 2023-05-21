@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 import jwt
 from django.conf import settings
+from django.db import transaction
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -768,9 +769,15 @@ class AddPatient(View):
                 user.patient_set.add(patient)
                 return JsonResponse({"result": "1", "message": "添加患者成功！"})
             else:
-                return JsonResponse({"result": "0", "message": "患者已经存在！"})
+                patient = user.patient_set.get(patient_id=patient.patient_id)
+                if patient is None:
+                    user.patient_set.add(patient)
+                    return JsonResponse({"result": "1", "message": "添加患者成功！"})
+                else:
+                    return JsonResponse({"result": "0", "message": "患者已经存在！"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
+
 
 
 class DeletePatient(View):
@@ -779,18 +786,21 @@ class DeletePatient(View):
         json_str = request.body
         json_obj = json.loads(json_str)
         patient_id_list = json_obj['patient_ids']
-        for patient_id in patient_id_list:
-            try:
-                patient = Patient.objects.get(patient_id=patient_id)
-                token = request.META.get('HTTP_AUTHORIZATION')
-                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
-                user_id = User.objects.get(phone_number=jwt_token['username']).user_id
-                user = User.objects.get(user_id=user_id)
-                user.patient_set.remove(patient)
-            except Patient.DoesNotExist:
-                return JsonResponse({"result": "0", "message": f"患者ID {patient_id} 不存在！"})
-            except:
-                return JsonResponse({"result": "0", "message": "出错啦！"})
+
+        try:
+            with transaction.atomic():
+                for patient_id in patient_id_list:
+                    try:
+                        patient = Patient.objects.get(patient_id=patient_id)
+                        token = request.META.get('HTTP_AUTHORIZATION')
+                        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+                        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+                        user = User.objects.get(user_id=user_id)
+                        user.patient_set.remove(patient)
+                    except Patient.DoesNotExist:
+                        return JsonResponse({"result": "0", "message": f"患者ID {patient_id} 不存在！"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
 
         return JsonResponse({"result": "1", "message": "删除患者成功！"})
 
