@@ -688,11 +688,18 @@ class PatientAppointment(View):
 class GetMedicalRecord(View):
     def get(self, request, patient_id):
         medical_records = MedicalRecord.objects.filter(patient_id_id=patient_id)
+        patient = Patient.objects.get(patient_id=patient_id)
         data = []
         for medical_record in medical_records:
             doctor = Doctor.objects.get(doctor_id=medical_record.doctor_id_id)
             print(doctor)
             result = {
+                "patient_id": patient.patient_id,
+                "name": patient.patient_name,
+                "gender": patient.patient_gender,
+                "absence": patient.absence,
+                "address": patient.address,
+                "age": patient.age,
                 "medical_record_id": medical_record.medical_record_id,
                 "medical_record_date": medical_record.medical_record_date,
                 "department_name": Department.objects.get(department_id=doctor.department_id_id).department_name,
