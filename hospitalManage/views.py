@@ -1,46 +1,75 @@
 import hashlib
 import json
 from datetime import datetime
+import time
 
+import jwt
+from django.conf import settings
 from django.http import JsonResponse, HttpRequest
+from django.utils.decorators import method_decorator
 from django.views import View
 
 from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
     Patient
+from tool.logging_dec import logging_check
 
 
 # Create your views here.
+def make_token(username, expire=3600 * 24):
+    key = settings.JWT_TOKEN_KEY
+    now_t = time.time()
+    payload_data = {'username': username, 'exp': now_t + expire}
+    return jwt.encode(payload_data, key, algorithm='HS256')
+
 
 class LoginView(View):
     def post(self, request):
-        json_str = request.body
-        json_obj = json.loads(json_str)
-        user_name = json_obj['username']
-        passwd = json_obj['password']
-        admin = Admin.objects.filter(username=user_name).first()
-        if admin is None:
-            response = {
-                "result": "0",
-                "reason": "admin not exist"
-            }
-            return JsonResponse(response)
-        else:
-            data_passwd = Admin.objects.filter(user_name=user_name).first().password
-            if MD5(passwd) == data_passwd:
+        token = request.META.get('HTTP_AUTHORIZATION')
+        if token is None:
+            json_str = request.body
+            json_obj = json.loads(json_str)
+            user_name = json_obj['username']
+            passwd = json_obj['password']
+            admin = Admin.objects.filter(username=user_name).first()
+            if admin is None:
                 response = {
-                    "result": "1",
-                    "reason": "success"
+                    "result": "0",
+                    "reason": "管理员不存在！"
                 }
                 return JsonResponse(response)
             else:
+                data_passwd = Admin.objects.filter(username=user_name).first().password
+                token = make_token(user_name)
+                if passwd == data_passwd:
+                    response = {
+                        "result": "1",
+                        "token": token,
+                        "reason": "登录成功！"
+                    }
+                    return JsonResponse(response)
+                else:
+                    response = {
+                        "result": "0",
+                        "reason": "密码错误！"
+                    }
+                    return JsonResponse(response)
+        else:
+            try:
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
                     "result": "0",
-                    "reason": "password wrong"
+                    "reason": "已登录，请勿重复登录"
                 }
                 return JsonResponse(response)
-
+            except:
+                response = {
+                    "result": "0",
+                    "reason": "登录状态异常"
+                }
+                return JsonResponse(response, status=401)
 
 class DoctorManagement(View):
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
@@ -123,6 +152,7 @@ class DoctorManagement(View):
 
 
 class ScheduleManage(View):
+    @method_decorator(logging_check)
     def get(self, request):
         try:
             data = []
@@ -226,6 +256,7 @@ def MD5(password):
 
 
 class DepartmentManage(View):
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
@@ -272,6 +303,7 @@ class DepartmentManage(View):
 
 
 class NotificationManage(View):
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -289,6 +321,7 @@ class NotificationManage(View):
 
 
 class VacancyManage(View):
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -341,6 +374,7 @@ class LeaveList(View):
 
 
 class ProcessLeave(View):
+    @method_decorator(logging_check)
     def post(self, request, leave_status):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
