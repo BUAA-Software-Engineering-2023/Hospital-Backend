@@ -103,9 +103,10 @@ class DoctorDetail(View):
         try:
             doctor = Doctor.objects.get(doctor_id=doctor_id)
             vacancies = Vacancy.objects.filter(doctor_id_id=doctor_id)
-            available = []
+            available = set()
             for vacancy in vacancies:
-                available.append(vacancy.start_time)
+                available.add(vacancy.start_time.strftime("%Y-%m-%d"))
+            available = sorted(list(available))
             data = {
                 "id": doctor.doctor_id,
                 "name": doctor.doctor_name,
