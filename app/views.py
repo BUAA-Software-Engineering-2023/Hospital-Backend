@@ -387,7 +387,6 @@ class LoginPassWd(View):
             m = hashlib.md5()
             m.update(passwd.encode())
             md5_pwd = m.hexdigest()
-
             data_passwd = User.objects.filter(phone_number=phone_number).first().passwd
             if data_passwd is None:
                 response = {
