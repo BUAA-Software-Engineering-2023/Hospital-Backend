@@ -769,8 +769,8 @@ class AddPatient(View):
                 user.patient_set.add(patient)
                 return JsonResponse({"result": "1", "message": "添加患者成功！"})
             else:
-                patient = user.patient_set.filter(patient_id=patient.patient_id).first()
-                if patient is None:
+                patient_1 = user.patient_set.filter(patient_id=patient.patient_id).first()
+                if patient_1 is None:
                     user.patient_set.add(patient)
                     return JsonResponse({"result": "1", "message": "添加患者成功！"})
                 else:
