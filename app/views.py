@@ -445,6 +445,7 @@ class LoginCode(View):
             else:
                 if code == data_code.verification_code:
                     token = make_token(phone_number)
+                    print(token)
                     Code.objects.filter(phone_number=phone_number).first().delete()
                     response = {
                         "result": "1",
@@ -567,7 +568,6 @@ class CancelAppointment(View):
             vacancy.vacancy_left = vacancy.vacancy_left + 1
             appointment = Appointment.objects.get(appointment_id=appointment_id)
             Appointment.delete(appointment)
-            Appointment.delete(appointment)
             vacancy.save()
             return JsonResponse({"result": "1", "message": "取消预约成功！"})
         except:
@@ -677,7 +677,7 @@ class PatientAppointment(View):
             doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
             department = Department.objects.get(department_id=doctor.department_id_id)
             appointment_time = appointment.appointment_time.strftime("%Y-%m-%d %H:%M")
-            data.append({"appointment_id":appointment.appointment_id,"appointment_time": appointment_time,
+            data.append({"appointment_id": appointment.appointment_id, "appointment_time": appointment_time,
                          "appointment_status": appointment.
                         appointment_status, "doctor_name": doctor.doctor_name, "department_name": department.
                         department_name})
@@ -724,58 +724,83 @@ def calculate_age(id_card_number):
     return age
 
 
+def get_gender(id_card_number):
+    gender_code = int(id_card_number[-2])
+    if gender_code % 2 == 0:
+        return "女性"
+    else:
+        return "男性"
+
+
 class AddPatient(View):
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        user = User.objects.get(user_id=user_id)
         patient_name = json_obj['patient_name']
-        patient_gender = json_obj['patient_gender']
-        patient_identification = json_obj['patient_identification']
+        patient_identification = json_obj['identification']
         phone_number = json_obj['phone_number']
         address = json_obj['address']
         age = calculate_age(patient_identification)
+        patient_gender = get_gender(patient_identification)
+        print(patient_identification)
         try:
-            patient = Patient(
-                patient_identification=patient_identification,
-                phone_number=phone_number,
-                patient_gender=patient_gender,
-                address=address,
-                patient_name=patient_name,
-                age=age
-            )
-            patient.save()
-            return JsonResponse({"result": "1", "message": "添加患者成功！"})
+            patient = Patient.objects.filter(identification=patient_identification).first()
+            print(patient)
+            if patient is None:
+                patient = Patient(
+                    identification=patient_identification,
+                    phone_number=phone_number,
+                    patient_gender=patient_gender,
+                    address=address,
+                    patient_name=patient_name,
+                    age=age
+                )
+                patient.save()
+                user.patient_set.add(patient)
+                return JsonResponse({"result": "1", "message": "添加患者成功！"})
+            else:
+                return JsonResponse({"result": "0", "message": "患者已经存在！"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
 class DeletePatient(View):
+    @method_decorator(logging_check)
     def delete(self, request, patient_id):
         patient = Patient.objects.get(patient_id=patient_id)
         try:
-            patient.delete()
+            token = request.META.get('HTTP_AUTHORIZATION')
+            jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+            user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+            user = User.objects.get(user_id=user_id)
+            user.patient_set.remove(patient)
+
             return JsonResponse({"result": "1", "message": "删除患者成功！"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
 class UpdatePatient(View):
+    @method_decorator(logging_check)
     def put(self, request, patient_id):
         json_str = request.body
         json_obj = json.loads(json_str)
         patient_name = json_obj['patient_name']
-        patient_gender = json_obj['patient_gender']
         patient_identification = json_obj['patient_identification']
         phone_number = json_obj['phone_number']
         address = json_obj['address']
         try:
             patient = Patient.objects.get(patient_id=patient_id)
             patient.patient_name = patient_name
-            patient.patient_gender = patient_gender
             patient.identification = patient_identification
             patient.phone_number = phone_number
             patient.address = address
+            patient.save()
             return JsonResponse({"result": "1", "message": "更新患者信息成功！"})
-
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
