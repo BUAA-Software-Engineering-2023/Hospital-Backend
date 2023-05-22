@@ -15,7 +15,7 @@ from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Patient, User, \
     MedicalRecord, Code, Appointment, Leave
 
-AppointmentStatus = {"待就医", "待就医", "已就医", "失约"}
+AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
 
 
 # Create your views here.
@@ -26,13 +26,12 @@ class DepartmentList(View):
         data = Department.objects.values('department_type').distinct()
         for obj in data:
             child = []
-            b = Department.objects.filter(department_type=obj.get('department_type')).values('department_name',
-                                                                                             'department_id')
+            b = Department.objects.filter(department_type=obj.get('department_type'))
             for c in b:
                 child.append({
-                    "id": c.get('department_id'),
-                    "name": c.get('department_name'),
-                    "introduction": c.get("department_introduction")
+                    "id": c.department_id,
+                    "name": c.department_name,
+                    "introduction": c.department_introduction
                 })
             print(child)
             type.append({
@@ -355,11 +354,13 @@ class UserInfo(View):
             jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
             user_id = User.objects.get(phone_number=jwt_token['username']).user_id
             data = []
-            users = User.objects.filter(user_id=user_id).values('phone_number')
+            users = User.objects.filter(user_id=user_id)
             for user in users:
                 info = {
                     "user_id": user_id,
-                    "phone": user['phone_number'],
+                    "phone": user.phone_number,
+                    "type": user.type,
+                    "avatar": user.avatar
                 }
                 data.append(info)
             response = {
@@ -568,7 +569,7 @@ class MakeAppointment(View):
                 vacancy.vacancy_left = vacancy.vacancy_left - 1
                 appointment = Appointment(
                     appointment_time=start_time,
-                    appointment_status=2,
+                    appointment_status=0,
                     doctor_id_id=doctor_id,
                     patient_id_id=patient_id
                 )
@@ -601,44 +602,52 @@ class CancelAppointment(View):
 class MakeMedicalRecord(View):
     @method_decorator(logging_check)
     def post(self, request):
-        json_str = request.body
-        json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_id']
-        medical_record_date = json_obj['medical_record_date']
-        patient_id = json_obj['patient_id']
-        department_id = json_obj['department_id']
-        symptom = json_obj['symptom']
-        prescription = json_obj['prescription']
-        result = json_obj['result']
-        advice = json_obj['advice']
-        try:
-            medical_record = MedicalRecord.objects.filter(patient_id_id=patient_id, department_id_id=department_id,
-                                                          doctor_id_id=doctor_id).first()
-            appointment_id = medical_record.appointment_id
-            appointment = Appointment.objects.get(appointment_id=appointment_id)
-            appointment.AppointmentStatus = 1
-            appointment.save()
-            if medical_record:
-                medical_record.medical_record_date = medical_record_date
-                medical_record.advice = advice
-                medical_record.result = result
-                medical_record.symptom = symptom
-                medical_record.prescription = prescription
-            else:
-                medical_record = MedicalRecord(
-                    medical_record_date=medical_record_date,
-                    advice=advice,
-                    result=result,
-                    symptom=symptom,
-                    prescription=prescription,
-                    doctor_id_id=doctor_id,
-                    patient_id_id=patient_id,
-                    department_id_id=department_id
-                )
-            medical_record.save()
-            return JsonResponse({"result": "1", "message": "开具处方成功！"})
-        except:
-            return JsonResponse({"result": "0", "message": "出错啦！"})
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        user = User.objects.get(user_id=user_id)
+        if user.type == 'doctor':
+            json_str = request.body
+            json_obj = json.loads(json_str)
+            medical_record_date = json_obj['medical_record_date']
+            patient_id = json_obj['patient_id']
+            doctor = Doctor.objects.filter(phone_number=user.phone_number).first()
+            doctor_id = doctor.doctor_id
+            department_id = doctor.department_id_id
+            symptom = json_obj['symptom']
+            prescription = json_obj['prescription']
+            result = json_obj['result']
+            advice = json_obj['advice']
+            try:
+                medical_record = MedicalRecord.objects.filter(patient_id_id=patient_id, department_id_id=department_id,
+                                                              doctor_id_id=doctor_id).first()
+                appointment_id = medical_record.appointment_id
+                appointment = Appointment.objects.get(appointment_id=appointment_id)
+                appointment.AppointmentStatus = 1
+                appointment.save()
+                if medical_record:
+                    medical_record.medical_record_date = medical_record_date
+                    medical_record.advice = advice
+                    medical_record.result = result
+                    medical_record.symptom = symptom
+                    medical_record.prescription = prescription
+                else:
+                    medical_record = MedicalRecord(
+                        medical_record_date=medical_record_date,
+                        advice=advice,
+                        result=result,
+                        symptom=symptom,
+                        prescription=prescription,
+                        doctor_id_id=doctor_id,
+                        patient_id_id=patient_id,
+                        department_id_id=department_id
+                    )
+                medical_record.save()
+                return JsonResponse({"result": "1", "message": "开具处方成功！"})
+            except:
+                return JsonResponse({"result": "0", "message": "出错啦！"})
+        else:
+            return JsonResponse({"result": "0", "message": "未有权限"})
 
 
 class MakeLeave(View):
@@ -709,7 +718,7 @@ class PatientAppointment(View):
             department = Department.objects.get(department_id=doctor.department_id_id)
             appointment_time = appointment.appointment_time.strftime("%Y-%m-%d %H:%M")
             data.append({"appointment_id": appointment.appointment_id, "appointment_time": appointment_time,
-                         "appointment_status": AppointmentStatus[appointment.AppointmentStatus],
+                         "appointment_status": AppointmentStatus[appointment.appointment_status],
                          "doctor_name": doctor.
                         doctor_name,
                          "department_name": department.
