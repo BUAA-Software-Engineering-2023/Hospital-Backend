@@ -31,7 +31,8 @@ class DepartmentList(View):
             for c in b:
                 child.append({
                     "id": c.get('department_id'),
-                    "name": c.get('department_name')
+                    "name": c.get('department_name'),
+                    "introduction": c.get("department_introduction")
                 })
             print(child)
             type.append({
@@ -64,7 +65,7 @@ class DoctorList(View):
                 'id': doctor.doctor_id,
                 'name': doctor.doctor_name,
                 'department': doctor.department_id.department_name,
-                'image':  request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
+                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
                 'introduction': doctor.doctor_introduction
             }
             data.append(doctor_data)
