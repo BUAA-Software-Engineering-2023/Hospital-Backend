@@ -84,7 +84,7 @@ class Command(BaseCommand):
                 doctor_id=doctors[fake.random_int(0, len(doctors) - 1)],
                 patient_id=patients[fake.random_int(0, len(patients) - 1)],
                 appointment_time=fake.date_time(),
-                appointment_status=fake.random_element(['Scheduled', 'Cancelled', 'Completed'])
+                appointment_status=fake.random_int(0, 2)
             )
 
     def seed_medical_records(self):
@@ -97,7 +97,7 @@ class Command(BaseCommand):
             doctor_id=doctor,
             patient_id=patient,
             appointment_time=fake.date_time(),
-            appointment_status=fake.random_element(['Scheduled', 'Cancelled', 'Completed'])
+            appointment_status=fake.random_int(0, 3)
         )
         medical_record = MedicalRecord(
             doctor_id=doctor,

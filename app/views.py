@@ -4,17 +4,18 @@ import random
 import string
 import time
 from datetime import datetime, timedelta
-
+from django.db.models import Q
 import jwt
 from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
-
 from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Patient, User, \
     MedicalRecord, Code, Appointment, Leave
+
+AppointmentStatus = {"待就医", "待就医", "已就医", "失约"}
 
 
 # Create your views here.
@@ -214,6 +215,19 @@ class VacancyList(View):
         return JsonResponse(response)
 
 
+class UploadAvatar(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        user = User.objects.get(user_id=user_id)
+        user.avatar = request.FILES['avatar']
+        print(user.avatar.url)
+        user.save()
+        return JsonResponse({'result': "1", 'message': '上传头像成功！'})
+
+
 class VacancyDetail(View):
     def get(self, request):
         try:
@@ -285,12 +299,20 @@ class PatientWaiting(View):
     def get(self, request, doctor_id):
         patient_id_list = Appointment.objects.filter(doctor_id=doctor_id).values('patient_id').distinct()
         data = []
-        for patient in patient_id_list:
-            patient_id = patient['patient_id']
-            patient_info = Patient.objects.get(patient_id=patient_id)
+        doctor = Doctor.objects.get(doctor_id=doctor_id)
+        # 获取当前日期
+        current_date = datetime.today()
+        # 检索医生当天正在等待或已完成的预约
+        waiting_appointments = Appointment.objects.filter(
+            Q(doctor_id=doctor),
+            Q(appointment_time__date=current_date),
+            Q(appointment_status=0) | Q(appointment_status=1)
+        ).order_by('appointment_id', 'appointment_status')
+        for appointment in waiting_appointments:
+            patient = Patient.objects.get(appointment.patient_id_id)
             info = {
-                "patient_id": patient_id,
-                "patient_name": patient_info.patient_name,
+                "patient_id": patient.patient_id,
+                "patient_name": patient.patient_name,
             }
             data.append(info)
         response = {
@@ -545,7 +567,7 @@ class MakeAppointment(View):
                 vacancy.vacancy_left = vacancy.vacancy_left - 1
                 appointment = Appointment(
                     appointment_time=start_time,
-                    appointment_status="Scheduled",
+                    appointment_status=2,
                     doctor_id_id=doctor_id,
                     patient_id_id=patient_id
                 )
@@ -593,7 +615,7 @@ class MakeMedicalRecord(View):
                                                           doctor_id_id=doctor_id).first()
             appointment_id = medical_record.appointment_id
             appointment = Appointment.objects.get(appointment_id=appointment_id)
-            appointment.appointment_status = "arrival"
+            appointment.AppointmentStatus = 1
             appointment.save()
             if medical_record:
                 medical_record.medical_record_date = medical_record_date
@@ -621,26 +643,33 @@ class MakeMedicalRecord(View):
 class MakeLeave(View):
     @method_decorator(logging_check)
     def post(self, request):
-        json_str = request.body
-        json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_id']
-        start_time = json_obj['start_time']
-        end_time = json_obj['end_time']
-        leave_type = json_obj['type']
-        reason = json_obj['reason']
-        try:
-            leave = Leave(
-                doctor_id_id=doctor_id,
-                start_time=start_time,
-                end_time=end_time,
-                type=leave_type,
-                reseon=reason,
-                leave_status="申请中"
-            )
-            leave.save()
-            return JsonResponse({"result": "1", "message": "请假申请成功！"})
-        except:
-            return JsonResponse({"result": "0", "message": "出错啦！"})
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        user = User.objects.get(user_id=user_id)
+        if user.type == 'doctor':
+            doctor_id = Doctor.objects.filter(phone_number=jwt_token['username']).first()
+            json_str = request.body
+            json_obj = json.loads(json_str)
+            start_time = json_obj['start_time']
+            end_time = json_obj['end_time']
+            leave_type = json_obj['type']
+            reason = json_obj['reason']
+            try:
+                leave = Leave(
+                    doctor_id_id=doctor_id,
+                    start_time=start_time,
+                    end_time=end_time,
+                    type=leave_type,
+                    reseon=reason,
+                    leave_status="申请中"
+                )
+                leave.save()
+                return JsonResponse({"result": "1", "message": "请假申请成功！"})
+            except:
+                return JsonResponse({"result": "0", "message": "出错啦！"})
+        else:
+            return JsonResponse({"result": "0", "message": "用户未有权限"})
 
     def delete(self, request):
         json_str = request.body
@@ -669,7 +698,7 @@ class CancelLeave(View):
 
 
 class PatientAppointment(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def get(self, request, patient_id):
         appointments = Appointment.objects.filter(patient_id_id=patient_id)
         print(appointments)
@@ -679,13 +708,16 @@ class PatientAppointment(View):
             department = Department.objects.get(department_id=doctor.department_id_id)
             appointment_time = appointment.appointment_time.strftime("%Y-%m-%d %H:%M")
             data.append({"appointment_id": appointment.appointment_id, "appointment_time": appointment_time,
-                         "appointment_status": appointment.
-                        appointment_status, "doctor_name": doctor.doctor_name, "department_name": department.
+                         "appointment_status": AppointmentStatus[appointment.AppointmentStatus],
+                         "doctor_name": doctor.
+                        doctor_name,
+                         "department_name": department.
                         department_name})
         return JsonResponse({"result": "1", "data": data})
 
 
 class GetMedicalRecord(View):
+    @method_decorator(logging_check)
     def get(self, request, patient_id):
         medical_records = MedicalRecord.objects.filter(patient_id_id=patient_id)
         patient = Patient.objects.get(patient_id=patient_id)
