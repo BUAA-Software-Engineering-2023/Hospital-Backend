@@ -380,6 +380,7 @@ class ProcessLeave(View):
         json_obj = json.loads(json_str)
         leave_id = json_obj['leave_id']
         leave = Leave.objects.get(leave_id=leave_id)
+        doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
         if leave_status == "Approved":
             schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
@@ -394,39 +395,45 @@ class ProcessLeave(View):
                         and schedule.schedule_is_morning == 0):
                     continue
                 else:
-                    # todo
-                    request = HttpRequest()
-                    request.method = 'POST'  # 设置请求方法为 POST
                     date = schedule.schedule_day
                     vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=leave.doctor_id)
                     for vacancy in vacancies:
-                        time = vacancy.start_time
+                        start_time = vacancy.start_time
                         is_morning = schedule.schedule_is_morning
-                        if is_morning * 12 < time.hour < is_morning * 12 + 12:
-                            appointments = Appointment.objects.filter(doctor_id=leave.doctor_id, appointment_time=time)
+                        if is_morning * 12 < start_time.hour < is_morning * 12 + 12:
+                            appointments = Appointment.objects.filter(doctor_id=leave.doctor_id, appointment_time=start_time)
                             for appointment in appointments:
                                 Appointment.delete(appointment)
                             Vacancy.delete(vacancy)
-                    request.body = f'{{"schedule_id": {schedule.schedule_id}}}'  # 设置请求的 body 数据
-                    schedule_manage = ScheduleManage()
-                    schedule_manage.delete(request)
-        leave.save()
+        else:
+            phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
+            user = User.objects.filter(phone_number=phone_number).first()
+            print(user)
+            message = Message(
+                title=f"您的请假未批准",
+                content="",
+                message_time=datetime.now(),
+                is_read=0,
+                user_id=user
+            )
+            message.save()
+        leave.delete()
         return JsonResponse({"result": "1"})
 
 
 def vacancy_check():
     vacancies = Vacancy.objects.all()
-    print(vacancies)
+    # print(vacancies)
     for vacancy in vacancies:
         doctor_id = vacancy.doctor_id.doctor_id
-        print(doctor_id)
+        # print(doctor_id)
         weekday = vacancy.start_time.weekday() + 1
-        print(weekday)
+        # print(weekday)
         if vacancy.start_time.hour < 12:
             is_morning = 1
         else:
             is_morning = 0
-        print(is_morning)
+        # print(is_morning)
         schedules = Schedule.objects.filter(schedule_day=weekday, doctor_id=doctor_id, schedule_is_morning=is_morning)
         if schedules.first():
             continue
@@ -436,9 +443,9 @@ def vacancy_check():
             for appointment in appointments:
                 patient_id = appointment.patient_id_id
                 patient = Patient.objects.get(patient_id=patient_id)
-                print(patient)
+                # print(patient)
                 users = patient.user_id.all()
-                print(users)
+                # print(users)
                 for user in users:
                     message = Message(
                         title="Your appointment has canceled",
@@ -448,8 +455,8 @@ def vacancy_check():
                         user_id_id=user.user_id
                     )
                     message.save()
-                print(appointment)
-                appointment.appointment_status = "Cancelled"
+                # print(appointment)
+                appointment.AppointmentStatus = "Cancelled"
                 appointment.save()
             vacancy.delete()
     return JsonResponse({"result": "1"})
