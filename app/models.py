@@ -24,7 +24,7 @@ class User(models.Model):
     user_id = models.AutoField(primary_key=True)
     phone_number = models.CharField(max_length=200, blank=False)
     passwd = models.CharField(max_length=200)
-    avatar = models.ImageField(default='')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     type = models.CharField(max_length=200)
 
 
@@ -45,7 +45,7 @@ class Appointment(models.Model):
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     appointment_time = models.DateTimeField()
-    appointment_status = models.CharField(max_length=200)
+    appointment_status = models.IntegerField(default=0)
 
 
 class MedicalRecord(models.Model):
