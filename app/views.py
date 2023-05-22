@@ -611,7 +611,9 @@ class MakeMedicalRecord(View):
             json_obj = json.loads(json_str)
             medical_record_date = json_obj['medical_record_date']
             patient_id = json_obj['patient_id']
-            department_id = json_obj['department_id']
+            doctor = Doctor.objects.filter(phone_number=user.phone_number).first()
+            doctor_id = doctor.doctor_id
+            department_id = doctor.department_id_id
             symptom = json_obj['symptom']
             prescription = json_obj['prescription']
             result = json_obj['result']
