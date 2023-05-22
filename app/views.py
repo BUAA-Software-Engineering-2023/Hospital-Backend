@@ -298,7 +298,8 @@ class PatientList(View):
 class PatientWaiting(View):
     def get(self, request, doctor_id):
         patient_id_list = Appointment.objects.filter(doctor_id=doctor_id).values('patient_id').distinct()
-        data = []
+        appointment_missed = []
+        appointment = []
         doctor = Doctor.objects.get(doctor_id=doctor_id)
         # 获取当前日期
         current_date = datetime.today()
@@ -314,10 +315,14 @@ class PatientWaiting(View):
                 "patient_id": patient.patient_id,
                 "patient_name": patient.patient_name,
             }
-            data.append(info)
+            if appointment.appointment_status == 0:
+                appointment.append(info)
+            else:
+                appointment_missed.append(info)
         response = {
             "result": "1",
-            "data": data
+            "appointment": appointment,
+            "appointment_missed": appointment_missed
         }
         return JsonResponse(response)
 
@@ -563,6 +568,10 @@ class MakeAppointment(View):
         doctor_id = json_obj['doctor_id']
         start_time = json_obj['start_time']
         patient_id = json_obj['patient_id']
+        appointment = Appointment.objects.filter(doctor_id_id=doctor_id, patient_id_id=patient_id,
+                                                 start_time=start_time)
+        if appointment:
+            return JsonResponse({"result": "0", "message": "您已预约！"})
         vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
         try:
             if vacancy.vacancy_left > 0:
@@ -621,9 +630,14 @@ class MakeMedicalRecord(View):
             try:
                 medical_record = MedicalRecord.objects.filter(patient_id_id=patient_id, department_id_id=department_id,
                                                               doctor_id_id=doctor_id).first()
-                appointment_id = medical_record.appointment_id
+                appointment_id = Appointment.objects.filter(patient_id_id=patient_id, doctor_id_id=doctor_id).first(). \
+                    appointment_id
                 appointment = Appointment.objects.get(appointment_id=appointment_id)
-                appointment.AppointmentStatus = 1
+                appointments = Appointment.objects.filter(appointment_id__lt=appointment.appointment_id,
+                                                          appointment_status=0)
+                for item in appointments:
+                    item.appointment_status = 1
+                appointment.AppointmentStatus = 2
                 appointment.save()
                 if medical_record:
                     medical_record.medical_record_date = medical_record_date
@@ -640,7 +654,8 @@ class MakeMedicalRecord(View):
                         prescription=prescription,
                         doctor_id_id=doctor_id,
                         patient_id_id=patient_id,
-                        department_id_id=department_id
+                        department_id_id=department_id,
+                        appointment_id_id=appointment_id
                     )
                 medical_record.save()
                 return JsonResponse({"result": "1", "message": "开具处方成功！"})
