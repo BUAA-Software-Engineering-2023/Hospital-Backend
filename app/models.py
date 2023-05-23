@@ -138,6 +138,7 @@ class News(models.Model):
 
 
 class Vacancy_setting(models.Model):
+    id = models.AutoField(primary_key=True)
     vacancy_cnt = models.IntegerField(default=10)
     vacancy_day = models.IntegerField()
     vacancy_time = models.CharField(max_length=20)
