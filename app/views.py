@@ -296,38 +296,48 @@ class PatientList(View):
 
 
 class PatientWaiting(View):
-    def get(self, request, doctor_id):
-        patient_id_list = Appointment.objects.filter(doctor_id=doctor_id).values('patient_id').distinct()
-        appointment_missed = []
-        appointment = []
-        doctor = Doctor.objects.get(doctor_id=doctor_id)
-        # 获取当前日期
-        current_date = datetime.today()
-        # 检索医生当天正在等待或已完成的预约
-        waiting_appointments = Appointment.objects.filter(
-            Q(doctor_id=doctor),
-            Q(appointment_time__date=current_date),
-            Q(appointment_status=0) | Q(appointment_status=1)
-        ).order_by('appointment_id', 'appointment_status')
-        for appointment in waiting_appointments:
-            patient = Patient.objects.get(appointment.patient_id_id)
-            info = {
-                "patient_id": patient.patient_id,
-                "patient_name": patient.patient_name,
+    @method_decorator(logging_check)
+    def get(self, request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        user = User.objects.get(user_id=user_id)
+        if user.type == "doctor":
+            appointment_finished = []
+            appointment_unfinished = []
+            doctor_id = Doctor.objects.filter(phone_number=user.phone_number).first().doctor_id
+            doctor = Doctor.objects.get(doctor_id=doctor_id)
+            # 获取当前日期
+            current_date = datetime.today()
+            # 检索医生当天正在等待或已完成的预约
+            waiting_appointments = Appointment.objects.filter(
+                Q(doctor_id=doctor),
+                Q(appointment_time__date=current_date),
+                Q(appointment_status=0) | Q(appointment_status=1) | Q(appointment_status=2)
+            ).order_by('appointment_status', 'appointment_id')
+            for appointment in waiting_appointments:
+                patient = Patient.objects.get(patient_id=appointment.patient_id_id)
+                info = {
+                    "patient_id": patient.patient_id,
+                    "patient_name": patient.patient_name,
+                    "appointment_status":AppointmentStatus[appointment.appointment_status]
+                }
+                if appointment.appointment_status == 0 or appointment.appointment_status == 1:
+                    appointment_unfinished.append(info)
+                else:
+                    appointment_finished.append(info)
+            response = {
+                "result": "1",
+                "appointment_finished": appointment_finished,
+                "appointment_unfinished": appointment_unfinished
             }
-            if appointment.appointment_status == 0:
-                appointment.append(info)
-            else:
-                appointment_missed.append(info)
-        response = {
-            "result": "1",
-            "appointment": appointment,
-            "appointment_missed": appointment_missed
-        }
-        return JsonResponse(response)
+            return JsonResponse(response)
+        else:
+            return JsonResponse({"result": "0", "message": "用户未有权限！"})
 
 
 class LeaveList(View):
+    @method_decorator(logging_check)
     def get(self, request, doctor_id):
         # try:
         data = []

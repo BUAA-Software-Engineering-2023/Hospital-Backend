@@ -31,7 +31,7 @@ urlpatterns = [
     path('api/cancelLeave', CancelLeave.as_view()),
     path('api/leaveList/<slug:doctor_id>', LeaveList.as_view()),
     path('api/vacancyDetail', VacancyDetail.as_view()),
-    path('api/patientWaiting/<slug:doctor_id>', PatientWaiting.as_view()),
+    path('api/patientWaiting/', PatientWaiting.as_view()),
     path('api/getMedicalRecord/<slug:patient_id>', GetMedicalRecord.as_view()),
     path('api/patientAppointment/<slug:patient_id>', PatientAppointment.as_view()),
     path('api/addPatient', AddPatient.as_view()),
