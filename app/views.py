@@ -566,7 +566,9 @@ class PatientDetail(View):
                         "gender": patient.patient_gender,
                         "cnt": patient.absence,
                         "address": patient.address,
-                        "age": patient.age
+                        "age": patient.age,
+                        "phone": patient.phone_number,
+                        "identification": patient.identification
                     }}
         return JsonResponse(response)
 
