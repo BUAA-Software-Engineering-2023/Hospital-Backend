@@ -6,7 +6,7 @@ import time
 import jwt
 from django.conf import settings
 from django.db import transaction
-from django.http import JsonResponse, HttpRequest
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 
@@ -271,9 +271,9 @@ class DepartmentManage(View):
                 department_introduction=department_introduction
             )
             department.save()
-            return JsonResponse({"result": 1, "message": "department added successfully"})
+            return JsonResponse({"result": "1", "message": "department added successfully"})
         else:
-            return JsonResponse({"result": 0, "message": "department already existed"})
+            return JsonResponse({"result": "0", "message": "department already existed"})
 
     def delete(self, request):
         json_str = request.body
@@ -303,9 +303,9 @@ class DepartmentManage(View):
             department.department_type = department_type
             department.department_introduction = department_introduction
             department.save()
-            return JsonResponse({"result": 1, "message": "Department updated successfully"})
+            return JsonResponse({"result": "1", "message": "Department updated successfully"})
         else:
-            return JsonResponse({"result": 0, "message": "Department not found"})
+            return JsonResponse({"result": "0", "message": "Department not found"})
 
 
 class NotificationManage(View):
@@ -323,7 +323,7 @@ class NotificationManage(View):
             notification_link=notification_link
         )
         notification.save()
-        return JsonResponse({"result": 1, "message": "通知成功发送"})
+        return JsonResponse({"result": "1", "message": "通知成功发送"})
 
 
 class VacancyManage(View):
@@ -359,7 +359,7 @@ class VacancyManage(View):
                 updated_vacancy.vacancy_count = vacancy_count
                 updated_vacancy.save()
 
-        response = {"result": 1, "message": "放号数量修改成功"}
+        response = {"result": "1", "message": "放号数量修改成功"}
         return JsonResponse(response)
 
 
