@@ -65,7 +65,8 @@ class DoctorList(View):
                 'name': doctor.doctor_name,
                 'department': doctor.department_id.department_name,
                 'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
-                'introduction': doctor.doctor_introduction
+                'introduction': doctor.doctor_introduction,
+                "phone_number":doctor.phone_number
             }
             data.append(doctor_data)
 
@@ -320,7 +321,7 @@ class PatientWaiting(View):
                 info = {
                     "patient_id": patient.patient_id,
                     "patient_name": patient.patient_name,
-                    "appointment_status":AppointmentStatus[appointment.appointment_status]
+                    "appointment_status": AppointmentStatus[appointment.appointment_status]
                 }
                 if appointment.appointment_status == 0 or appointment.appointment_status == 1:
                     appointment_unfinished.append(info)
@@ -558,15 +559,15 @@ class PatientDetail(View):
     @method_decorator(logging_check)
     def get(self, request, patient_id):
         patient = Patient.objects.get(patient_id=patient_id)
-        response = {"result": 1,
-                    "data": [{
+        response = {"result": "1",
+                    "data": {
                         "id": patient.patient_id,
                         "name": patient.patient_name,
                         "gender": patient.patient_gender,
-                        "absence": patient.absence,
+                        "cnt": patient.absence,
                         "address": patient.address,
                         "age": patient.age
-                    }]}
+                    }}
         return JsonResponse(response)
 
 
