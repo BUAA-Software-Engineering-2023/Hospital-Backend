@@ -5,6 +5,7 @@ import time
 
 import jwt
 from django.conf import settings
+from django.db import transaction
 from django.http import JsonResponse, HttpRequest
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -68,6 +69,7 @@ class LoginView(View):
                 }
                 return JsonResponse(response, status=401)
 
+
 class DoctorManagement(View):
     @method_decorator(logging_check)
     def post(self, request):
@@ -107,20 +109,18 @@ class DoctorManagement(View):
     def delete(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_id']
-        info = Doctor.objects.filter(doctor_id=doctor_id).first()
-        if info is None:
-            response = {
-                "result": "0",
-                "reason": "doctor not found"
-            }
-            return JsonResponse(response)
-        else:
-            Doctor.delete(info)
-            response = {
-                "result": "1",
-            }
-            return JsonResponse(response)
+        doctor_ids = json_obj['doctor_ids']
+        try:
+            with transaction.atomic():
+                for doctor_id in doctor_ids:
+                    try:
+                        doctor = Doctor.objects.get(doctor_id=doctor_id)
+                        doctor.delete()
+                    except Doctor.DoesNotExist:
+                        return JsonResponse({"result": "0", "message": f"医生ID {doctor_id} 不存在！"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
+        return JsonResponse({"result": "1", "message": "删除医生成功！"})
 
     def put(self, request):
         json_str = request.body
@@ -219,27 +219,27 @@ class ScheduleManage(View):
         # try:
         json_str = request.body
         json_obj = json.loads(json_str)
-        schedule_id = json_obj['schedule_id']
-        schedule = Schedule.objects.get(schedule_id=schedule_id)
-        doctor_id = schedule.doctor_id
-        is_morning = schedule.schedule_is_morning
-        date = schedule.schedule_day
-
-        vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id)
-
-        for vacancy in vacancies:
-            time = vacancy.start_time
-            if is_morning * 12 < time.hour < is_morning * 12 + 12:
-                appointments = Appointment.objects.filter(doctor_id=doctor_id, appointment_time=time)
-                for appointment in appointments:
-                    Appointment.delete(appointment)
-                Vacancy.delete(vacancy)
-
-        Schedule.delete(schedule)
-        response = {
-            "result": "1"
-        }
-        vacancy_check()
+        schedule_ids = json_obj['schedule_ids']
+        try:
+            with transaction.atomic():
+                for schedule_id in schedule_ids:
+                    schedule = Schedule.objects.get(schedule_id=schedule_id)
+                    doctor_id = schedule.doctor_id
+                    is_morning = schedule.schedule_is_morning
+                    date = schedule.schedule_day
+                    vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id)
+                    for vacancy in vacancies:
+                        start_time = vacancy.start_time
+                        if is_morning * 12 < start_time.hour < is_morning * 12 + 12:
+                            appointments = Appointment.objects.filter(doctor_id=doctor_id, appointment_time=start_time)
+                            for appointment in appointments:
+                                Appointment.delete(appointment)
+                            Vacancy.delete(vacancy)
+                    Schedule.delete(schedule)
+                vacancy_check()
+        except:
+            return JsonResponse({"result": "0"})
+        response = {"result": "1"}
         return JsonResponse(response)
     # except:
     #     response = {
@@ -276,15 +276,21 @@ class DepartmentManage(View):
             return JsonResponse({"result": 0, "message": "department already existed"})
 
     def delete(self, request):
-        json_str = request.body.decode('utf-8')
+        json_str = request.body
         json_obj = json.loads(json_str)
-        department_name = json_obj['department_name']
-        department = Department.objects.filter(department_name=department_name).first()
-        if department:
-            department.delete()
-            return JsonResponse({"result": 1, "message": "Department deleted successfully"})
-        else:
-            return JsonResponse({"result": 0, "message": "Department not found"})
+        department_names = json_obj['department_names']
+        try:
+            with transaction.atomic():
+                for department_name in department_names:
+                    department = Department.objects.filter(department_name=department_name).first()
+                    if department:
+                        department.delete()
+                    else:
+                        return JsonResponse({"result": "0", "message": "未找到该部门！"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
+
+        return JsonResponse({"result": "1", "message": "删除部门成功！"})
 
     def put(self, request):
         json_str = request.body.decode('utf-8')
@@ -353,7 +359,7 @@ class VacancyManage(View):
                 updated_vacancy.vacancy_count = vacancy_count
                 updated_vacancy.save()
 
-        response = {"result": 1, "message": "放号数量修改"}
+        response = {"result": 1, "message": "放号数量修改成功"}
         return JsonResponse(response)
 
 
@@ -401,7 +407,8 @@ class ProcessLeave(View):
                         start_time = vacancy.start_time
                         is_morning = schedule.schedule_is_morning
                         if is_morning * 12 < start_time.hour < is_morning * 12 + 12:
-                            appointments = Appointment.objects.filter(doctor_id=leave.doctor_id, appointment_time=start_time)
+                            appointments = Appointment.objects.filter(doctor_id=leave.doctor_id,
+                                                                      appointment_time=start_time)
                             for appointment in appointments:
                                 Appointment.delete(appointment)
                             Vacancy.delete(vacancy)
