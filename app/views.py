@@ -651,7 +651,7 @@ class MakeMedicalRecord(View):
                                                           appointment_status=0)
                 for item in appointments:
                     item.appointment_status = 1
-                appointment.AppointmentStatus = 2
+                appointment.appointment_status = 2
                 appointment.save()
                 if medical_record:
                     medical_record.medical_record_date = medical_record_date
