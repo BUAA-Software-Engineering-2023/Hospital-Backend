@@ -66,7 +66,7 @@ class DoctorList(View):
                 'department': doctor.department_id.department_name,
                 'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
                 'introduction': doctor.doctor_introduction,
-                "phone_number":doctor.phone_number
+                "phone_number": doctor.phone_number
             }
             data.append(doctor_data)
 
