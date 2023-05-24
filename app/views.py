@@ -716,21 +716,10 @@ class MakeLeave(View):
         else:
             return JsonResponse({"result": "0", "message": "用户未有权限"})
 
-    def delete(self, request):
-        json_str = request.body
-        json_obj = json.loads(json_str)
-        leave_id = json_obj['leave_id']
-        try:
-            leave = Leave.objects.get(leave_id=leave_id)
-            Leave.delete(leave)
-            return JsonResponse({"result": "1", "message": "删除请假成功！"})
-        except:
-            return JsonResponse({"result": "0", "message": "出错啦！"})
-
 
 class CancelLeave(View):
     @method_decorator(logging_check)
-    def post(self, request):
+    def delete(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
@@ -738,18 +727,15 @@ class CancelLeave(View):
         if user.type == 'doctor':
             json_str = request.body
             json_obj = json.loads(json_str)
-            doctor_id = Doctor.objects.filter(phone_number=jwt_token['username']).first().doctor_id
-            start_time = json_obj['start_time']
-            end_time = json_obj['end_time']
-            leave = Leave.objects.filter(doctor_id_id=doctor_id, start_time=start_time, end_time=end_time).first()
-            if leave:
-                leave.delete()
-                return JsonResponse({"result": "1", "message": "取消预约成功！"})
-            else:
+            leave_id = json_obj['leave_id']
+            try:
+                leave = Leave.objects.get(leave_id=leave_id)
+                Leave.delete(leave)
+                return JsonResponse({"result": "1", "message": "取消请假成功！"})
+            except:
                 return JsonResponse({"result": "0", "message": "出错啦！"})
         else:
             return JsonResponse({"result": "0", "message": "用户未有权限"})
-
 
 class PatientAppointment(View):
     @method_decorator(logging_check)
