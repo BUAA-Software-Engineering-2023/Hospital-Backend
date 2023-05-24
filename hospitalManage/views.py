@@ -421,7 +421,6 @@ class ProcessLeave(View):
         else:
             phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
             user = User.objects.filter(phone_number=phone_number).first()
-            print(user)
             message = Message(
                 title=f"您的请假未批准",
                 content="",
@@ -430,7 +429,6 @@ class ProcessLeave(View):
                 user_id=user
             )
             message.save()
-        leave.delete()
         return JsonResponse({"result": "1"})
 
 
