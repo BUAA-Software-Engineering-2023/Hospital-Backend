@@ -369,7 +369,6 @@ class LeaveList(View):
             return JsonResponse({"result": 0, "message": "用户未有权限"})
 
 
-
 class UserInfo(View):
     @method_decorator(logging_check)
     def get(self, request):

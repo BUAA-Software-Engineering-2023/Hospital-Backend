@@ -133,7 +133,7 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
-        doctor_image = request.FILES['image']
+        doctor_image = request.FILES['doctor_image']
         info = Doctor.objects.filter(doctor_id=doctor_id).first()
         if info is None:
             response = {
