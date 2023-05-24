@@ -1,11 +1,12 @@
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 import jwt
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -408,7 +409,13 @@ class ProcessLeave(View):
                     continue
                 else:
                     date = schedule.schedule_day
-                    vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=leave.doctor_id)
+                    current_date = datetime.now().date()
+                    next_week = current_date + timedelta(days=7)
+                    vacancies = Vacancy.objects.filter(
+                        Q(start_time__week_day=date) &
+                        Q(doctor_id=leave.doctor_id) &
+                        Q(start_time__date__range=[current_date, next_week])
+                    )
                     for vacancy in vacancies:
                         start_time = vacancy.start_time
                         is_morning = schedule.schedule_is_morning
@@ -416,9 +423,22 @@ class ProcessLeave(View):
                             appointments = Appointment.objects.filter(doctor_id=leave.doctor_id,
                                                                       appointment_time=start_time)
                             for appointment in appointments:
-                                Appointment.delete(appointment)
+                                patient_id = appointment.patient_id_id
+                                patient = Patient.objects.get(patient_id=patient_id)
+                                users = patient.user_id.all()
+                                doctor_name = Doctor.objects.get(doctor_id=doctor_id).doctor_name
+                                for user in users:
+                                    message = Message(
+                                        title="您的预约已取消",
+                                        content=f"很抱歉，由于{doctor_name}医生的原因，{patient.patient_name}的预约已取消。",
+                                        message_time=datetime.now(),
+                                        is_read=0,
+                                        user_id_id=user.user_id
+                                    )
+                                    message.save()
+                                appointment.appointment_status = 3
+                                appointment.save()
                             Vacancy.delete(vacancy)
-            vacancy_check()
         else:
             phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
             user = User.objects.filter(phone_number=phone_number).first()
@@ -440,7 +460,7 @@ class DoctorImage(View):
 
 
 def vacancy_check():
-    vacancies = Vacancy.objects.all()
+    vacancies = Vacancy.objects.filter(start_time__gt=datetime.now())
     for vacancy in vacancies:
         doctor_id = vacancy.doctor_id.doctor_id
         weekday = vacancy.start_time.weekday() + 1
@@ -462,7 +482,7 @@ def vacancy_check():
                 for user in users:
                     message = Message(
                         title="您的预约已取消",
-                        content=f"很抱歉，由于医生的原因，{patient.patient_name}的预约已取消。",
+                        content=f"很抱歉，由于特殊原因，{patient.patient_name}的预约已取消。",
                         message_time=datetime.now(),
                         is_read=0,
                         user_id_id=user.user_id
