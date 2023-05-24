@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Patient, User, \
-    MedicalRecord, Code, Appointment, Leave
+    MedicalRecord, Code, Appointment, Leave, Message
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
 
@@ -340,27 +340,34 @@ class PatientWaiting(View):
 
 class LeaveList(View):
     @method_decorator(logging_check)
-    def get(self, request, doctor_id):
+    def get(self, request):
         # try:
         data = []
-        leaves = Leave.objects.filter(doctor_id=doctor_id)
-        for leave in leaves:
-            info = {
-                "leave_id": leave.leave_id,
-                "start_time": leave.start_time,
-                "end_time": leave.end_time,
-                "type": leave.type,
-                "reason": leave.reseon,
-                "leave_status": leave.leave_status
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        user = User.objects.get(user_id=user_id)
+        if user.type == "doctor":
+            doctor_id = Doctor.objects.filter(phone_number=user.phone_number).first().doctor_id
+            leaves = Leave.objects.filter(doctor_id=doctor_id)
+            for leave in leaves:
+                info = {
+                    "leave_id": leave.leave_id,
+                    "start_time": leave.start_time,
+                    "end_time": leave.end_time,
+                    "type": leave.type,
+                    "reason": leave.reseon,
+                    "leave_status": leave.leave_status
+                }
+                data.append(info)
+            response = {
+                "result": "1",
+                "data": data
             }
-            data.append(info)
-        response = {
-            "result": "1",
-            "data": data
-        }
-        return JsonResponse(response)
-    # except:
-    #     return JsonResponse({"result": 0, "message": "error"})
+            return JsonResponse(response)
+        else:
+            return JsonResponse({"result": 0, "message": "用户未有权限"})
+
 
 
 class UserInfo(View):
@@ -910,3 +917,20 @@ class UpdatePatient(View):
             return JsonResponse({"result": "1", "message": "更新患者信息成功！"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
+
+
+class GetMessage(View):
+    @method_decorator(logging_check)
+    def get(self, request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        messages = Message.objects.filter(user_id=user_id)
+        data = []
+        for message in messages:
+            data.append({"title": message.title,
+                         "content": message.content,
+                         "is_read": message.is_read,
+                         "time": message.message_time,
+                         })
+        return JsonResponse({"result": "1", "message": data})
