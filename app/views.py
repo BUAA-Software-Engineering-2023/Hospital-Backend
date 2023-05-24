@@ -353,7 +353,7 @@ class LeaveList(View):
             for leave in leaves:
                 info = {
                     "leave_id": leave.leave_id,
-                    "start_time":  leave.start_time.strftime("%Y-%m-%d %H:%M"),
+                    "start_time": leave.start_time.strftime("%Y-%m-%d %H:%M"),
                     "end_time": leave.end_time.strftime("%Y-%m-%d %H:%M"),
                     "type": leave.type,
                     "reason": leave.reseon,
@@ -737,6 +737,7 @@ class CancelLeave(View):
         else:
             return JsonResponse({"result": "0", "message": "用户未有权限"})
 
+
 class PatientAppointment(View):
     @method_decorator(logging_check)
     def get(self, request, patient_id):
@@ -911,11 +912,38 @@ class GetMessage(View):
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         messages = Message.objects.filter(user_id=user_id)
-        data = []
+        messages_read = []
+        messages_unread = []
+        messages_total = []
         for message in messages:
-            data.append({"title": message.title,
-                         "content": message.content,
-                         "is_read": message.is_read,
-                         "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
-                         })
-        return JsonResponse({"result": "1", "message": data})
+            if message.is_read:
+                messages_read.append({"title": message.title,
+                                      "content": message.content,
+                                      "is_read": message.is_read,
+                                      "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+                                      })
+            else:
+                messages_unread.append({"title": message.title,
+                                        "content": message.content,
+                                        "is_read": message.is_read,
+                                        "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+                                        })
+            messages_total.append({"title": message.title,
+                                   "content": message.content,
+                                   "is_read": message.is_read,
+                                   "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+                                   })
+        return JsonResponse({"result": "1", "messages_unread": messages_unread, "messages_read": messages_read,
+                             "messages": messages_total})
+
+
+class UnreadMessage(View):
+    @method_decorator(logging_check)
+    def get(self, request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        user_id = User.objects.get(phone_number=jwt_token['username']).user_id
+        messages = Message.objects.filter(user_id=user_id, is_read=False).first()
+        if messages:
+            return JsonResponse({"result": "1"})
+        return JsonResponse({"result": "0"})
