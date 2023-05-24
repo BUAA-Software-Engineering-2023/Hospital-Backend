@@ -14,6 +14,8 @@ from app.models import Department, Notification, Vacancy, Appointment, Doctor, L
     Patient
 from tool.logging_dec import logging_check
 
+AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
+
 
 # Create your views here.
 def make_token(username, expire=3600 * 24):
@@ -164,7 +166,7 @@ class ScheduleManage(View):
             for doctor in doctor_id_list:
                 doctor_id = doctor['doctor_id']
                 day = []
-                schedules = Schedule.objects.filter(doctor_id=doctor_id).values('schedule_ismorning', "schedule_day",
+                schedules = Schedule.objects.filter(doctor_id=doctor_id).values('schedule_is_morning', "schedule_day",
                                                                                 'schedule_id')
                 if schedules is not None:
                     for schedule in schedules:
@@ -323,7 +325,7 @@ class NotificationManage(View):
         notification = Notification(
             title=notification_title,
             content=notification_content,
-            notification_time=datetime.now(),
+            notification_time=datetime.now().date(),
             notification_link=notification_link
         )
         notification.save()
@@ -369,7 +371,7 @@ class VacancyManage(View):
 
 class LeaveList(View):
     def get(self, request):
-        leaves = Leave.objects.exclude(leave_status='Approved')
+        leaves = Leave.objects.exclude(leave_status='已通过')
         data = []
         for leave in leaves:
             doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
@@ -392,7 +394,7 @@ class ProcessLeave(View):
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
-        if leave_status == "Approved":
+        if leave_status == "已通过":
             schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
             for schedule in schedules:
                 if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
@@ -440,12 +442,9 @@ class DoctorImage(View):
 
 def vacancy_check():
     vacancies = Vacancy.objects.all()
-    # print(vacancies)
     for vacancy in vacancies:
         doctor_id = vacancy.doctor_id.doctor_id
-        # print(doctor_id)
         weekday = vacancy.start_time.weekday() + 1
-        # print(weekday)
         if vacancy.start_time.hour < 12:
             is_morning = 1
         else:
@@ -460,9 +459,7 @@ def vacancy_check():
             for appointment in appointments:
                 patient_id = appointment.patient_id_id
                 patient = Patient.objects.get(patient_id=patient_id)
-                # print(patient)
                 users = patient.user_id.all()
-                # print(users)
                 for user in users:
                     message = Message(
                         title="您的预约已取消",
@@ -472,8 +469,7 @@ def vacancy_check():
                         user_id_id=user.user_id
                     )
                     message.save()
-                # print(appointment)
-                appointment.AppointmentStatus = "Cancelled"
+                appointment.appointment_status = 3
                 appointment.save()
             vacancy.delete()
     return JsonResponse({"result": "1"})
