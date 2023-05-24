@@ -418,6 +418,7 @@ class ProcessLeave(View):
                             for appointment in appointments:
                                 Appointment.delete(appointment)
                             Vacancy.delete(vacancy)
+            vacancy_check()
         else:
             phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
             user = User.objects.filter(phone_number=phone_number).first()
