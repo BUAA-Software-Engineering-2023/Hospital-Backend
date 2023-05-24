@@ -35,7 +35,7 @@ class LoginView(View):
             if admin is None:
                 response = {
                     "result": "0",
-                    "reason": "管理员不存在！"
+                    "message": "管理员不存在！"
                 }
                 return JsonResponse(response)
             else:
@@ -45,13 +45,13 @@ class LoginView(View):
                     response = {
                         "result": "1",
                         "data": {"token": token},
-                        "reason": "登录成功！"
+                        "message": "登录成功！"
                     }
                     return JsonResponse(response)
                 else:
                     response = {
                         "result": "0",
-                        "reason": "密码错误！"
+                        "message": "密码错误！"
                     }
                     return JsonResponse(response)
         else:
@@ -59,13 +59,13 @@ class LoginView(View):
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
                     "result": "0",
-                    "reason": "已登录，请勿重复登录"
+                    "message": "已登录，请勿重复登录"
                 }
                 return JsonResponse(response)
             except:
                 response = {
                     "result": "0",
-                    "reason": "登录状态异常"
+                    "message": "登录状态异常"
                 }
                 return JsonResponse(response, status=401)
 
@@ -80,6 +80,7 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
+        doctor_image = request.FILES['image']
         info = Doctor.objects.filter(phone_number=doctor_phone).first()
         if info is None:
             Doctor.objects.create(
@@ -87,7 +88,8 @@ class DoctorManagement(View):
                 doctor_gender=doctor_gender,
                 doctor_name=doctor_name,
                 department_id_id=doctor_dp_id,
-                doctor_introduction=doctor_introduction
+                doctor_introduction=doctor_introduction,
+                doctor_image=doctor_image
             )
             user = User(
                 phone_number=doctor_phone,
@@ -102,7 +104,7 @@ class DoctorManagement(View):
         else:
             response = {
                 "result": "0",
-                "reason": "phone number exists"
+                "message": "医生已存在！"
             }
             return JsonResponse(response)
 
@@ -131,11 +133,12 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
+        doctor_image = request.FILES['image']
         info = Doctor.objects.filter(doctor_id=doctor_id).first()
         if info is None:
             response = {
                 "result": "0",
-                "reason": "doctor not found"
+                "message": "医生未找到！"
             }
             return JsonResponse(response)
         else:
@@ -144,6 +147,7 @@ class DoctorManagement(View):
             info.department_id_id = doctor_dp_id
             info.doctor_phone = doctor_phone
             info.doctor_gender = doctor_gender
+            info.doctor_image = doctor_image
             info.save()
             response = {
                 "result": "1",
@@ -271,9 +275,9 @@ class DepartmentManage(View):
                 department_introduction=department_introduction
             )
             department.save()
-            return JsonResponse({"result": "1", "message": "department added successfully"})
+            return JsonResponse({"result": "1", "message": "部门添加成功"})
         else:
-            return JsonResponse({"result": "0", "message": "department already existed"})
+            return JsonResponse({"result": "0", "message": "部门已存在"})
 
     def delete(self, request):
         json_str = request.body
@@ -303,9 +307,9 @@ class DepartmentManage(View):
             department.department_type = department_type
             department.department_introduction = department_introduction
             department.save()
-            return JsonResponse({"result": "1", "message": "Department updated successfully"})
+            return JsonResponse({"result": "1", "message": "部门信息更新成功！"})
         else:
-            return JsonResponse({"result": "0", "message": "Department not found"})
+            return JsonResponse({"result": "0", "message": "部门未找到！"})
 
 
 class NotificationManage(View):
@@ -428,6 +432,12 @@ class ProcessLeave(View):
         return JsonResponse({"result": "1"})
 
 
+class DoctorImage(View):
+    @method_decorator(logging_check)
+    def post(self, request, doctor_id):
+        doctor = Doctor.objects.get(doctor_id=doctor_id)
+
+
 def vacancy_check():
     vacancies = Vacancy.objects.all()
     # print(vacancies)
@@ -455,7 +465,7 @@ def vacancy_check():
                 # print(users)
                 for user in users:
                     message = Message(
-                        title="Your appointment has canceled",
+                        title="您的预约已取消",
                         content=f"很抱歉，由于医生的原因，{patient.patient_name}的预约已取消。",
                         message_time=datetime.now(),
                         is_read=0,
