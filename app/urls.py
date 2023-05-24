@@ -2,7 +2,7 @@ from django.urls import path
 from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList, NewsList, VacancyList, DoctorDetail, \
     PatientList, UserInfo, PatientDetail, UserView, SendCode, LoginCode, LoginPassWd, MakeAppointment, MakeMedicalRecord \
     , MakeLeave, CancelLeave, LeaveList, VacancyDetail, PatientWaiting, PatientAppointment, CancelAppointment, \
-    GetMedicalRecord, AddPatient, DeletePatient, UpdatePatient, UploadAvatar, GetMessage
+    GetMedicalRecord, AddPatient, DeletePatient, UpdatePatient, UploadAvatar, GetMessage, UnreadMessage
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),  # API endpoint for retrieving a list of departments
@@ -38,5 +38,6 @@ urlpatterns = [
     path('api/deletePatient', DeletePatient.as_view()),
     path('api/updatePatient/<slug:patient_id>', UpdatePatient.as_view()),
     path('api/uploadAvatar', UploadAvatar.as_view()),
-    path('api/getMessage', GetMessage.as_view())
+    path('api/getMessage', GetMessage.as_view()),
+    path('api/unreadMessage', UnreadMessage.as_view())
 ]
