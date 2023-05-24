@@ -453,12 +453,6 @@ class ProcessLeave(View):
         return JsonResponse({"result": "1"})
 
 
-class DoctorImage(View):
-    @method_decorator(logging_check)
-    def post(self, request, doctor_id):
-        doctor = Doctor.objects.get(doctor_id=doctor_id)
-
-
 def vacancy_check():
     vacancies = Vacancy.objects.filter(start_time__gt=datetime.now())
     for vacancy in vacancies:
