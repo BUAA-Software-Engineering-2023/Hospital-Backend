@@ -377,7 +377,7 @@ class UserInfo(View):
                     "user_id": user_id,
                     "phone": user.phone_number,
                     "type": user.type,
-                    "avatar": user.avatar
+                    "avatar": request.build_absolute_uri(user.avatar)
                 }
                 data.append(info)
             response = {
@@ -416,7 +416,7 @@ class SendCode(View):
         )
         code.save()
         return JsonResponse(
-            {"result": "1", 'reason': '验证码发送成功', "vertification_code": verification_code})
+            {"result": "1", 'message': '验证码发送成功', "vertification_code": verification_code})
 
 
 class LoginPassWd(View):
@@ -434,7 +434,7 @@ class LoginPassWd(View):
             if data_passwd is None:
                 response = {
                     "result": "0",
-                    "reason": "电话号码错误"
+                    "message": "电话号码错误"
                 }
                 return JsonResponse(response)
             else:
@@ -448,7 +448,7 @@ class LoginPassWd(View):
                 else:
                     response = {
                         "result": "0",
-                        "reason": "密码错误"
+                        "message": "密码错误"
                     }
                     return JsonResponse(response)
         else:
@@ -456,13 +456,13 @@ class LoginPassWd(View):
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
                     "result": "0",
-                    "reason": "已登录，请勿重复登录"
+                    "message": "已登录，请勿重复登录"
                 }
                 return JsonResponse(response)
             except:
                 response = {
                     "result": "0",
-                    "reason": "登录状态异常"
+                    "message": "登录状态异常"
                 }
                 return JsonResponse(response, status=401)
 
@@ -475,13 +475,13 @@ class LoginCode(View):
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
             if User.objects.get(phone_number=phone_number) is None:
-                return JsonResponse({"result": "0", "reason": "用户未注册"})
+                return JsonResponse({"result": "0", "message": "用户未注册"})
             code = json_obj['code']
             data_code = Code.objects.filter(phone_number=phone_number).first()
             if data_code is None:
                 response = {
                     "result": "0",
-                    "reason": "请先获取验证码"
+                    "message": "请先获取验证码"
                 }
                 return JsonResponse(response)
             else:
@@ -497,7 +497,7 @@ class LoginCode(View):
                 else:
                     response = {
                         "result": "0",
-                        "reason": "验证码错误"
+                        "message": "验证码错误"
                     }
                     return JsonResponse(response)
         else:
@@ -505,13 +505,13 @@ class LoginCode(View):
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
                     "result": "0",
-                    "reason": "已登录，请勿重复登录"
+                    "message": "已登录，请勿重复登录"
                 }
                 return JsonResponse(response)
             except:
                 response = {
                     "result": "0",
-                    "reason": "登录状态异常"
+                    "message": "登录状态异常"
                 }
                 return JsonResponse(response, status=401)
 
@@ -533,12 +533,12 @@ class UserView(View):
         info = Code.objects.filter(phone_number=phone_number).first()
         user = User.objects.filter(phone_number=phone_number).first()
         if user is not None:
-            return JsonResponse({'result': "0", 'reason': '手机号已经被注册'})
+            return JsonResponse({'result': "0", 'message': '手机号已经被注册'})
         if info is not None:
             info = Code.objects.get(phone_number=phone_number)
             end_time = info.expire_time
             if datetime.now() > end_time:
-                return JsonResponse({'result': "0", 'reason': "验证码过期"})
+                return JsonResponse({'result': "0", 'message': "验证码过期"})
             m = hashlib.md5()
             m.update(password.encode())
             md5_pwd = m.hexdigest()
@@ -549,11 +549,11 @@ class UserView(View):
                     type="user"
                 )
                 user.save()
-                return JsonResponse({'result': "1", 'reason': '注册成功'})
+                return JsonResponse({'result': "1", 'message': '注册成功'})
             else:
-                return JsonResponse({'result': "0", 'reason': "验证码错误"})
+                return JsonResponse({'result': "0", 'message': "验证码错误"})
         else:
-            return JsonResponse({'result': "0", 'reason': '未发送验证码'})
+            return JsonResponse({'result': "0", 'message': '未发送验证码'})
 
 
 class PatientDetail(View):
