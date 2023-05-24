@@ -353,8 +353,8 @@ class LeaveList(View):
             for leave in leaves:
                 info = {
                     "leave_id": leave.leave_id,
-                    "start_time": leave.start_time,
-                    "end_time": leave.end_time,
+                    "start_time":  leave.start_time.strftime("%Y-%m-%d %H:%M"),
+                    "end_time": leave.end_time.strftime("%Y-%m-%d %H:%M"),
                     "type": leave.type,
                     "reason": leave.reseon,
                     "leave_status": leave.leave_status
@@ -930,6 +930,6 @@ class GetMessage(View):
             data.append({"title": message.title,
                          "content": message.content,
                          "is_read": message.is_read,
-                         "time": message.message_time,
+                         "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
                          })
         return JsonResponse({"result": "1", "message": data})
