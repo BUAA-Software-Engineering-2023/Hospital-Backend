@@ -377,7 +377,7 @@ class UserInfo(View):
                     "user_id": user_id,
                     "phone": user.phone_number,
                     "type": user.type,
-                    "avatar": user.avatar
+                    "avatar": request.build_absolute_uri(user.avatar)
                 }
                 data.append(info)
             response = {
