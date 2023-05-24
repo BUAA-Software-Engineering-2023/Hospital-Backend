@@ -928,11 +928,12 @@ class GetMessage(View):
                                         "is_read": message.is_read,
                                         "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
                                         })
-            messages_total.append({"title": message.title,
-                                   "content": message.content,
-                                   "is_read": message.is_read,
-                                   "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
-                                   })
+            messages_total.append({
+                "id": message.message_id, "title": message.title,
+                "content": message.content,
+                "is_read": message.is_read,
+                "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+            })
         return JsonResponse({"result": "1", "messages_unread": messages_unread, "messages_read": messages_read,
                              "messages": messages_total})
 
@@ -947,3 +948,15 @@ class UnreadMessage(View):
         if messages:
             return JsonResponse({"result": "1"})
         return JsonResponse({"result": "0"})
+
+
+class ReadMessage(View):
+    @method_decorator(logging_check)
+    def get(self, request, message_id):
+        message = Message.objects.get(message_id=message_id)
+        message.is_read = True
+        message.save()
+        try:
+            return JsonResponse({"result": "1", "message": "已读"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
