@@ -920,19 +920,19 @@ class GetMessage(View):
                 messages_read.append({"title": message.title,
                                       "content": message.content,
                                       "is_read": message.is_read,
-                                      "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+                                      "time": message.message_time.strftime("%Y-%m-%d"),
                                       })
             else:
                 messages_unread.append({"title": message.title,
                                         "content": message.content,
                                         "is_read": message.is_read,
-                                        "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+                                        "time": message.message_time.strftime("%Y-%m-%d"),
                                         })
             messages_total.append({
                 "id": message.message_id, "title": message.title,
                 "content": message.content,
                 "is_read": message.is_read,
-                "time": message.message_time.strftime("%Y-%m-%d %H:%M"),
+                "time": message.message_time.strftime("%Y-%m-%d"),
             })
         return JsonResponse({"result": "1", "messages_unread": messages_unread, "messages_read": messages_read,
                              "messages": messages_total})
