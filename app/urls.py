@@ -2,7 +2,7 @@ from django.urls import path
 from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList, NewsList, VacancyList, DoctorDetail, \
     PatientList, UserInfo, PatientDetail, UserView, SendCode, LoginCode, LoginPassWd, MakeAppointment, MakeMedicalRecord \
     , MakeLeave, CancelLeave, LeaveList, VacancyDetail, PatientWaiting, PatientAppointment, CancelAppointment, \
-    GetMedicalRecord, AddPatient, DeletePatient, UpdatePatient, UploadAvatar
+    GetMedicalRecord, AddPatient, DeletePatient, UpdatePatient, UploadAvatar, GetMessage
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),  # API endpoint for retrieving a list of departments
@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/makeMedicalrecord', MakeMedicalRecord.as_view()),
     path('api/makeLeave', MakeLeave.as_view()),
     path('api/cancelLeave', CancelLeave.as_view()),
-    path('api/leaveList/<slug:doctor_id>', LeaveList.as_view()),
+    path('api/leaveList/', LeaveList.as_view()),
     path('api/vacancyDetail', VacancyDetail.as_view()),
     path('api/patientWaiting/', PatientWaiting.as_view()),
     path('api/getMedicalRecord/<slug:patient_id>', GetMedicalRecord.as_view()),
@@ -37,5 +37,6 @@ urlpatterns = [
     path('api/addPatient', AddPatient.as_view()),
     path('api/deletePatient', DeletePatient.as_view()),
     path('api/updatePatient/<slug:patient_id>', UpdatePatient.as_view()),
-    path('api/uploadAvatar', UploadAvatar.as_view())
+    path('api/uploadAvatar', UploadAvatar.as_view()),
+    path('api/getMessage', GetMessage.as_view())
 ]
