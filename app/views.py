@@ -376,24 +376,22 @@ class UserInfo(View):
             token = request.META.get('HTTP_AUTHORIZATION')
             jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
             user_id = User.objects.get(phone_number=jwt_token['username']).user_id
-            data = []
-            users = User.objects.filter(user_id=user_id)
-            for user in users:
-                info = {
-                    "user_id": user_id,
-                    "phone": user.phone_number,
-                    "type": user.type,
-                    "avatar": request.build_absolute_uri(user.avatar)
-                }
-                data.append(info)
+            user = User.objects.get(user_id=user_id)
+            info = {
+                "user_id": user_id,
+                "phone": user.phone_number,
+                "type": user.type,
+                "avatar": request.build_absolute_uri(user.avatar)
+            }
             response = {
                 "result": "1",
-                "data": data
+                "data": info
             }
             return JsonResponse(response)
         except:
             response = {
-                "result": "0"
+                "result": "0",
+                "message": "出错啦！"
             }
             return JsonResponse(response)
 
