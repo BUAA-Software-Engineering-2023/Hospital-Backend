@@ -66,7 +66,7 @@ class Message(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.CharField(max_length=200)
-    message_time = models.DateField(blank=False)
+    message_time = models.DateTimeField(blank=False)
     is_read = models.BooleanField()
 
 
