@@ -64,7 +64,7 @@ class DoctorList(View):
                 'id': doctor.doctor_id,
                 'name': doctor.doctor_name,
                 'department': doctor.department_id.department_name,
-                'image': doctor.doctor_image.url if doctor.doctor_image else None,
+                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
                 'introduction': doctor.doctor_introduction,
                 "phone_number": doctor.phone_number,
                 "gender": doctor.doctor_gender
@@ -114,7 +114,7 @@ class DoctorDetail(View):
                 "id": doctor.doctor_id,
                 "name": doctor.doctor_name,
                 "department": doctor.department_id.department_name,
-                'image': doctor.doctor_image.url if doctor.doctor_image else None,
+                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
                 "introduction": doctor.doctor_introduction,
                 "available": available
             }
@@ -140,7 +140,7 @@ class CarouselMapList(View):
         for notification in notifications:
             data.append({
                 "id": notification.notification_id,
-                "img": notification.image,
+                "img": request.build_absolute_uri(notification.image),
                 "time": notification.notification_time.strftime("%Y-%m-%d"),
                 "title": notification.title,
                 "content": notification.content
@@ -148,7 +148,7 @@ class CarouselMapList(View):
         for news in newsList:
             data.append({
                 "id": news.news_id,
-                "img": news.image,
+                "img": request.build_absolute_uri(news.image),
                 "time": news.news_date.strftime("%Y-%m-%d"),
                 "title": news.title,
                 "content": news.content
@@ -213,7 +213,7 @@ class VacancyList(View):
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
                 "department": Department.objects.get(department_id=departmentId).department_name,
-                "image": doctor_info.doctor_image.url if doctor_info.doctor_image else None,
+                "image": request.build_absolute_uri(doctor_info.doctor_image) if doctor_info.doctor_image else None,
                 "introduction": doctor_info.doctor_introduction,
                 "available": available
             })
@@ -232,7 +232,7 @@ class UploadAvatar(View):
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         user = User.objects.get(user_id=user_id)
-        user.avatar = request.build_absolute_uri(request.FILES['avatar'])
+        user.avatar = (request.FILES['avatar'])
         user.save()
         return JsonResponse({'result': "1", 'message': '上传头像成功！'})
 
@@ -388,7 +388,7 @@ class UserInfo(View):
                 "user_id": user_id,
                 "phone": user.phone_number,
                 "type": user.type,
-                "avatar": user.avatar
+                "avatar": request.build_absolute_uri(user.avatar)
             }
             response = {
                 "result": "1",
