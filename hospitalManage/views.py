@@ -169,7 +169,7 @@ class DoctorImage(View):
     def post(self, request, doctor_id):
         doctor_image = request.FILES.get('doctor_image')
         doctor = Doctor.objects.get(doctor_id=doctor_id)
-        doctor.doctor_image = request.build_absolute_ur(doctor_image)
+        doctor.doctor_image = request.build_absolute_uri(doctor_image)
         doctor.save()
         return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
 
@@ -272,7 +272,7 @@ class ScheduleManage(View):
                     for schedule in schedules:
                         day_data = {
                             "schedule": schedule['schedule_id'],
-                            "ismorning": schedule['schedule_ismorning'],
+                            "is_morning": schedule['schedule_is_morning'],
                             "date": schedule['schedule_day']
                         }
                         day.append(day_data)
@@ -298,28 +298,27 @@ class ScheduleManage(View):
             return JsonResponse(response)
 
     def post(self, request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        doctor_id = json_obj['doctor_id']
+        is_mornings = json_obj['is_morning']
+        dates = json_obj['date']
         try:
-            json_str = request.body
-            json_obj = json.loads(json_str)
-            doctor_id = json_obj['doctor_id']
-            is_morning = json_obj['is_morning']
-            date = json_obj['date']
-            schedule = Schedule(
-                schedule_day=date,
-                schedule_ismorning=is_morning,
-                doctor_id_id=doctor_id
-            )
-            schedule.save()
-            response = {
-                "result": "1"
-            }
-            vacancy_check()
-            return JsonResponse(response)
+            with transaction.atomic():
+                for is_morning, date in is_mornings, dates:
+                    schedule = Schedule.objects.filter(schedule_day=date, schedule_is_morning=is_morning, doctor_id_id
+                    =doctor_id).first()
+                    if schedule is None:
+                        schedule = Schedule(
+                            schedule_day=date,
+                            schedule_is_morning=is_morning,
+                            doctor_id_id=doctor_id
+                        )
+                        schedule.save()
+                vacancy_check()
         except:
-            response = {
-                "result": "0"
-            }
-            return JsonResponse(response)
+            return JsonResponse({"result": "0", "message": "排班设置失败！"})
+        return JsonResponse({"result": "1", "message": "排班设置成功！"})
 
     def delete(self, request):
         # try:
