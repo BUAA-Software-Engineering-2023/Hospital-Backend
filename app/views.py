@@ -597,7 +597,7 @@ class PaymentList(View):
 
 
 class Pay(View):
-    def post(self, request, payment_id):
+    def post(self, request, pay_id):
         return 0
 
 
@@ -610,7 +610,7 @@ class MakeAppointment(View):
         start_time = json_obj['start_time']
         patient_id = json_obj['patient_id']
         appointment = Appointment.objects.filter(doctor_id_id=doctor_id, patient_id_id=patient_id,
-                                                 start_time=start_time)
+                                                 start_time=start_time).first()
         if appointment:
             return JsonResponse({"result": "0", "message": "您已预约！"})
         vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
