@@ -75,7 +75,6 @@ class Notification(models.Model):
     content = models.CharField(max_length=255)
     title = models.CharField(max_length=200)
     notification_time = models.DateField()
-    notification_link = models.CharField(max_length=255)
     type = models.IntegerField(default=0)
     image = models.ImageField()
 
@@ -128,8 +127,8 @@ class Schedule(models.Model):
 
 class News(models.Model):
     news_id = models.AutoField(primary_key=True)
+    news_content = models.CharField(max_length=255)
     news_title = models.CharField(max_length=200)
-    news_link = models.CharField(max_length=200)
     news_date = models.DateField()
     type = models.IntegerField(default=0)
     image = models.ImageField()
