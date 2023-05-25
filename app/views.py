@@ -3,7 +3,7 @@ import json
 import random
 import string
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.db.models import Q
 import jwt
 from django.conf import settings
@@ -13,7 +13,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, News, Vacancy, Patient, User, \
-    MedicalRecord, Code, Appointment, Leave, Message, Payment
+    MedicalRecord, Code, Appointment, Leave, Message, Payment, Schedule, Vacancy_setting
+from apscheduler.schedulers.background import BackgroundScheduler
+from django_apscheduler.jobstores import DjangoJobStore
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约", "待支付"]
 
@@ -33,7 +35,6 @@ class DepartmentList(View):
                     "name": c.department_name,
                     "introduction": c.department_introduction
                 })
-            print(child)
             type.append({
                 "name": obj.get('department_type'),
                 "children": child
@@ -42,7 +43,6 @@ class DepartmentList(View):
             'result': "1",
             'data': type
         }
-        print(response)
         return JsonResponse(response)
 
 
@@ -246,7 +246,6 @@ class VacancyDetail(View):
 
             vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id)
             for vacancy in vacancies:
-                print(type(vacancy.start_time.hour))
                 if (vacancy.start_time.hour < 12 and is_morning == 1) or (
                         vacancy.start_time.hour > 12 and is_morning == 0):
                     info = {
@@ -776,7 +775,6 @@ class PatientAppointment(View):
     @method_decorator(logging_check)
     def get(self, request, patient_id):
         appointments = Appointment.objects.filter(patient_id_id=patient_id)
-        print(appointments)
         data = []
         for appointment in appointments:
             doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
@@ -799,7 +797,6 @@ class GetMedicalRecord(View):
         data = []
         for medical_record in medical_records:
             doctor = Doctor.objects.get(doctor_id=medical_record.doctor_id_id)
-            print(doctor)
             result = {
                 "patient_id": patient.patient_id,
                 "name": patient.patient_name,
@@ -994,3 +991,56 @@ class ReadMessage(View):
             return JsonResponse({"result": "1", "message": "已读"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
+
+
+def generate_vacancy():
+    vacancy_exists = Vacancy.objects.exists()
+    if vacancy_exists and Vacancy.objects.latest('start_time').start_time > datetime.now():
+        start_date_vacancy = Vacancy.objects.latest('start_time')
+        start_date = start_date_vacancy.start_time
+        end_date = datetime.now() + timedelta(days=7)
+    else:
+        start_date = datetime.now()
+        end_date = datetime.now() + timedelta(days=7)
+    delta = end_date - start_date
+    for i in range(delta.days + 1):
+        current_date = start_date + timedelta(days=i)
+
+        # 根据日期查询对应的Schedule
+        schedules = Schedule.objects.filter(schedule_day=current_date.weekday()+1)
+
+        for schedule in schedules:
+            if schedule.schedule_is_morning:
+                start_time = current_date.replace(hour=8, minute=0, second=0)
+                end_time = current_date.replace(hour=11, minute=0, second=0)
+            else:
+                start_time = current_date.replace(hour=14, minute=0, second=0)
+                end_time = current_date.replace(hour=17, minute=0, second=0)
+
+            current_time = start_time
+            while current_time < end_time:
+                # 创建相应的Vacancy对象
+                vacancy_day = current_time.weekday()+1
+                minutes = 0 if current_time.minute == 0 else 0.5
+                vacancy_time = current_time.hour + minutes
+                vacancy_setting = Vacancy_setting.objects.filter(vacancy_day=vacancy_day, vacancy_time=vacancy_time). \
+                    first()
+                vacancy = Vacancy(
+                    doctor_id=schedule.doctor_id,
+                    start_time=current_time,
+                    end_time=current_time + timedelta(minutes=30),
+                    vacancy_left=vacancy_setting.vacancy_cnt,
+                    vacancy_count=vacancy_setting.vacancy_cnt
+                )
+                vacancy.save()
+                current_time += timedelta(minutes=30)
+
+
+def start():
+    scheduler = BackgroundScheduler()
+    scheduler.add_jobstore(DjangoJobStore(), "default")
+    scheduler.add_job(generate_vacancy, 'cron', hour=21, minute=31)
+    scheduler.start()
+
+
+start()

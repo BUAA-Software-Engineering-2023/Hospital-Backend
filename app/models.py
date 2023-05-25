@@ -102,8 +102,8 @@ class Payment(models.Model):
 class Vacancy(models.Model):
     vacancy_id = models.BigAutoField(primary_key=True)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    vacancy_count = models.IntegerField(default=100)
-    vacancy_left = models.IntegerField(default=100)
+    vacancy_count = models.IntegerField(default=10)
+    vacancy_left = models.IntegerField(default=10)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
@@ -138,4 +138,4 @@ class Vacancy_setting(models.Model):
     id = models.AutoField(primary_key=True)
     vacancy_cnt = models.IntegerField(default=10)
     vacancy_day = models.IntegerField()
-    vacancy_time = models.CharField(max_length=20)
+    vacancy_time = models.DecimalField(decimal_places=1,max_digits=3)
