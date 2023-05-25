@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import LoginView, DoctorManagement, ScheduleManage, DepartmentManage, NotificationManage, VacancyManage, \
-    LeaveList, ProcessLeave, vacancy_check
+    LeaveList, ProcessLeave, vacancy_check, DoctorImage
 
 urlpatterns = [
     #
@@ -17,7 +17,7 @@ urlpatterns = [
     path('api/vacancyManage', VacancyManage.as_view()),
     #
     path('api/leaveList', LeaveList.as_view()),
-    #
     path('api/processLeave/<slug:leave_status>', ProcessLeave.as_view()),
+    path('api/doctorImage/<slug:doctor_id>', DoctorImage.as_view()),
     path('api/testcheck', vacancy_check),
 ]

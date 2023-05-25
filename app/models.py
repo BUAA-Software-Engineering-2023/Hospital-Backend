@@ -34,9 +34,9 @@ class Patient(models.Model):
     patient_name = models.CharField(max_length=200, blank=False)
     patient_gender = models.CharField(max_length=200)
     identification = models.CharField(max_length=200)
-    phone_number = models.CharField(max_length=200,null=True, blank=True)
+    phone_number = models.CharField(max_length=200, null=True, blank=True)
     absence = models.IntegerField(default=0)
-    address = models.CharField(max_length=200,null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
     age = models.IntegerField(default=0)
 
 
@@ -76,6 +76,8 @@ class Notification(models.Model):
     title = models.CharField(max_length=200)
     notification_time = models.DateField()
     notification_link = models.CharField(max_length=255)
+    type = models.IntegerField(default=0)
+    image = models.ImageField()
 
 
 class Code(models.Model):
@@ -124,17 +126,13 @@ class Schedule(models.Model):
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
 
 
-class CarouselMap(models.Model):
-    carousel_map_id = models.AutoField(primary_key=True)
-    carousel_map_img = models.ImageField()
-    carousel_map_link = models.CharField(max_length=100)
-
-
 class News(models.Model):
     news_id = models.AutoField(primary_key=True)
     news_title = models.CharField(max_length=200)
     news_link = models.CharField(max_length=200)
     news_date = models.DateField()
+    type = models.IntegerField(default=0)
+    image = models.ImageField()
 
 
 class Vacancy_setting(models.Model):
