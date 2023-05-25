@@ -596,10 +596,17 @@ class PaymentList(View):
 
 
 class Pay(View):
-    def post(self, request, pay_id):
-        pay = Payment.objects.get(pay_id=pay_id)
+    def post(self, request, payment_id):
+        pay = Payment.objects.get(pay_id=payment_id)
         pay.payment_status = '已支付'
         pay.save()
+
+
+class GetPaymentStatus(View):
+    def get(self, request, payment_id):
+        pay = Payment.objects.get(pay_id=payment_id)
+        return JsonResponse({"result": "1", "status": pay.payment_status})
+
 
 class MakeAppointment(View):
     @method_decorator(logging_check)
