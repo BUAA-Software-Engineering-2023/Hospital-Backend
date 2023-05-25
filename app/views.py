@@ -602,7 +602,7 @@ class Pay(View):
 
 
 class MakeAppointment(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
