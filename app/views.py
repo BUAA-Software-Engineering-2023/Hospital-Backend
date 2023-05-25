@@ -610,7 +610,7 @@ class MakeAppointment(View):
         start_time = json_obj['start_time']
         patient_id = json_obj['patient_id']
         appointment = Appointment.objects.filter(doctor_id_id=doctor_id, patient_id_id=patient_id,
-                                                 start_time=start_time).first()
+                                                 appointment_time=start_time).first()
         if appointment:
             return JsonResponse({"result": "0", "message": "您已预约！"})
         vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
@@ -626,7 +626,7 @@ class MakeAppointment(View):
                 payment = Payment(
                     payment_status="待支付",
                     amount=20,
-                    appointment_id=appointment
+                    appointment_id_id=appointment.appointment_id
                 )
                 payment.save()
                 appointment.save()
