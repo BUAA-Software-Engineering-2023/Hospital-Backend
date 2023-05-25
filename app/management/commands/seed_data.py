@@ -136,7 +136,6 @@ class Command(BaseCommand):
                 content=fake.text(max_nb_chars=255),
                 title=fake.sentence(nb_words=4),
                 notification_time=fake.date(),
-                notification_link=fake.url()
             )
 
     # def seed_codes(self):
