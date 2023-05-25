@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app',
     'hospitalManage',
-    'django_crontab',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +128,4 @@ JWT_TOKEN_KEY = 'pesenteur'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
