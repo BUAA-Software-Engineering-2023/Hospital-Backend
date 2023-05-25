@@ -114,7 +114,7 @@ class UploadNotificationImage(View):
     def post(self, request, notification_id):
         notification_image = request.FILES.get('notification_image')
         notification = Notification.objects.get(notification_id=notification_id)
-        notification.image = request.build_absolute_uri(notification_image)
+        notification.image = notification_image
         notification.save()
         return JsonResponse({"result": "1", "message": "上传成功"})
 
@@ -169,7 +169,7 @@ class DoctorImage(View):
     def post(self, request, doctor_id):
         doctor_image = request.FILES.get('doctor_image')
         doctor = Doctor.objects.get(doctor_id=doctor_id)
-        doctor.doctor_image = request.build_absolute_uri(doctor_image)
+        doctor.doctor_image = doctor_image
         doctor.save()
         return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
 
