@@ -980,8 +980,8 @@ class UnreadMessage(View):
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         messages = Message.objects.filter(user_id=user_id, is_read=False).first()
         if messages:
-            return JsonResponse({"1"})
-        return JsonResponse({"0"})
+            return JsonResponse({"result": "1"})
+        return JsonResponse({"result": "0"})
 
 
 class ReadMessage(View):
