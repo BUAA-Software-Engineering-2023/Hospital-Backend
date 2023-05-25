@@ -186,7 +186,7 @@ class DoctorManagement(View):
         doctor_gender = json_obj['doctor_gender']
         info = Doctor.objects.filter(phone_number=doctor_phone).first()
         if info is None:
-            Doctor.objects.create(
+            doctor = Doctor.objects.create(
                 phone_number=doctor_phone,
                 doctor_gender=doctor_gender,
                 doctor_name=doctor_name,
@@ -202,7 +202,7 @@ class DoctorManagement(View):
             user.save()
             response = {
                 "result": "1",
-
+                "doctor_id": doctor.doctor_id
             }
             return JsonResponse(response)
         else:
