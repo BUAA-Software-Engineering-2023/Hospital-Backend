@@ -4,6 +4,8 @@ import random
 import string
 import time
 from datetime import datetime, timedelta, time
+
+import django.db
 from django.db.models import Q
 import jwt
 from django.conf import settings
@@ -977,8 +979,8 @@ class UnreadMessage(View):
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         messages = Message.objects.filter(user_id=user_id, is_read=False).first()
         if messages:
-            return JsonResponse({"result": True})
-        return JsonResponse({"result": False})
+            return JsonResponse({"result": "1","unread":True})
+        return JsonResponse({"result": "0","unread":False})
 
 
 class ReadMessage(View):
@@ -1042,5 +1044,7 @@ def start():
     scheduler.add_job(generate_vacancy, 'cron', hour=21, minute=31)
     scheduler.start()
 
-
-start()
+try:
+    start()
+except django.db.ProgrammingError:
+    pass
