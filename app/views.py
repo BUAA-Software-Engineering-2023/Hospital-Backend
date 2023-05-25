@@ -13,9 +13,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from tool.logging_dec import logging_check
 from .models import Department, Doctor, Notification, News, Vacancy, Patient, User, \
-    MedicalRecord, Code, Appointment, Leave, Message
+    MedicalRecord, Code, Appointment, Leave, Message, Payment
 
-AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
+AppointmentStatus = ["待就医", "待就医", "已就医", "失约", "待支付"]
 
 
 # Create your views here.
@@ -585,6 +585,22 @@ class PatientDetail(View):
         return JsonResponse(response)
 
 
+class PaymentList(View):
+    def get(self, request, appointment_id):
+        payment = Payment.objects.filter(appointment_id_id=appointment_id).first()
+        if payment:
+            return JsonResponse({"result": "1", "data": {
+                "payment_status": payment.payment_status,
+                "payment_id": payment.payment_id,
+                "payment_amount": payment.amount
+            }})
+
+
+class Pay(View):
+    def post(self, request, payment_id):
+        return 0
+
+
 class MakeAppointment(View):
     @method_decorator(logging_check)
     def post(self, request):
@@ -603,10 +619,16 @@ class MakeAppointment(View):
                 vacancy.vacancy_left = vacancy.vacancy_left - 1
                 appointment = Appointment(
                     appointment_time=start_time,
-                    appointment_status=0,
+                    appointment_status=3,
                     doctor_id_id=doctor_id,
                     patient_id_id=patient_id
                 )
+                payment = Payment(
+                    payment_status="待支付",
+                    amount=20,
+                    appointment_id=appointment
+                )
+                payment.save()
                 appointment.save()
                 vacancy.save()
                 return JsonResponse({"result": "1", "message": "预约成功！"})
