@@ -89,7 +89,6 @@ class NotificationList(View):
             notification_data = {
                 'id': notification.notification_id,
                 'title': notification.title,
-                'link': notification.notification_link,
                 'date': notification.notification_time,
             }
             data.append(notification_data)
@@ -598,8 +597,9 @@ class PaymentList(View):
 
 class Pay(View):
     def post(self, request, pay_id):
-        return 0
-
+        pay = Payment.objects.get(pay_id=pay_id)
+        pay.payment_status = '已支付'
+        pay.save()
 
 class MakeAppointment(View):
     @method_decorator(logging_check)
