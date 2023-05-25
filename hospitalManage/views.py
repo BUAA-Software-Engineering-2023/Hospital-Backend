@@ -109,6 +109,16 @@ class NewsManage(View):
             return JsonResponse({"result": "0", "message": "新闻不存在！"})
 
 
+class UploadNotificationImage(View):
+    @method_decorator(logging_check)
+    def post(self, request, notification_id):
+        notification_image = request.FILES.get('notification_image')
+        notification = Notification.objects.get(notification_id=notification_id)
+        notification.image = request.build_absolute_uri(notification_image)
+        notification.save()
+        return JsonResponse({"result": "1", "message": "上传成功"})
+
+
 class NotificationManage(View):
     @method_decorator(logging_check)
     def post(self, request):
@@ -159,13 +169,13 @@ class DoctorImage(View):
     def post(self, request, doctor_id):
         doctor_image = request.FILES.get('doctor_image')
         doctor = Doctor.objects.get(doctor_id=doctor_id)
-        doctor.doctor_image = doctor_image
+        doctor.doctor_image = request.build_absolute_ur(doctor_image)
         doctor.save()
         return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
 
 
 class DoctorManagement(View):
-    @method_decorator(logging_check)
+    # @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -402,24 +412,6 @@ class DepartmentManage(View):
             return JsonResponse({"result": "1", "message": "部门信息更新成功！"})
         else:
             return JsonResponse({"result": "0", "message": "部门未找到！"})
-
-
-class NotificationManage(View):
-    @method_decorator(logging_check)
-    def post(self, request):
-        json_str = request.body.decode('utf-8')
-        json_obj = json.loads(json_str)
-        notification_title = json_obj['title']
-        notification_content = json_obj['content']
-        notification_link = json_obj['notification_link']
-        notification = Notification(
-            title=notification_title,
-            content=notification_content,
-            notification_time=datetime.now().date(),
-            notification_link=notification_link
-        )
-        notification.save()
-        return JsonResponse({"result": "1", "message": "通知成功发送"})
 
 
 class VacancyManage(View):

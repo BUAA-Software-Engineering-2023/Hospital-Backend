@@ -64,7 +64,7 @@ class DoctorList(View):
                 'id': doctor.doctor_id,
                 'name': doctor.doctor_name,
                 'department': doctor.department_id.department_name,
-                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
+                'image': doctor.doctor_image.url if doctor.doctor_image else None,
                 'introduction': doctor.doctor_introduction,
                 "phone_number": doctor.phone_number,
                 "gender": doctor.doctor_gender
@@ -114,7 +114,7 @@ class DoctorDetail(View):
                 "id": doctor.doctor_id,
                 "name": doctor.doctor_name,
                 "department": doctor.department_id.department_name,
-                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
+                'image': doctor.doctor_image.url if doctor.doctor_image else None,
                 "introduction": doctor.doctor_introduction,
                 "available": available
             }
@@ -213,7 +213,7 @@ class VacancyList(View):
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
                 "department": Department.objects.get(department_id=departmentId).department_name,
-                "image": request.build_absolute_uri(doctor_info.doctor_image.url) if doctor_info.doctor_image else None,
+                "image": doctor_info.doctor_image.url if doctor_info.doctor_image else None,
                 "introduction": doctor_info.doctor_introduction,
                 "available": available
             })
@@ -232,8 +232,7 @@ class UploadAvatar(View):
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         user = User.objects.get(user_id=user_id)
-        user.avatar = request.FILES['avatar']
-        print(request.build_absolute_uri(user.avatar.url))
+        user.avatar = request.build_absolute_uri(request.FILES['avatar'])
         user.save()
         return JsonResponse({'result': "1", 'message': '上传头像成功！'})
 
@@ -389,7 +388,7 @@ class UserInfo(View):
                 "user_id": user_id,
                 "phone": user.phone_number,
                 "type": user.type,
-                "avatar": request.build_absolute_uri(user.avatar)
+                "avatar": user.avatar
             }
             response = {
                 "result": "1",
