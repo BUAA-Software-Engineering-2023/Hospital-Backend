@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from tool.logging_dec import logging_check
-from .models import Department, Doctor, Notification, CarouselMap, News, Vacancy, Patient, User, \
+from .models import Department, Doctor, Notification, News, Vacancy, Patient, User, \
     MedicalRecord, Code, Appointment, Leave, Message
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
@@ -133,18 +133,26 @@ class DoctorDetail(View):
 
 class CarouselMapList(View):
     def get(self, request):
-        carousel_maps = CarouselMap.objects.all()
+        notifications = Notification.objects.filter(type=1)
+        newsList = News.objects.filter(type=1)
         # Serialize notification objects to JSON
         data = []
-        for carousel_map in carousel_maps:
-            carousel_map_data = {
-                'id': carousel_map.carousel_map_id,
-                'img': carousel_map.carousel_map_img,
-                'link': carousel_map.carousel_map_link,
-
-            }
-            data.append(carousel_map_data)
-
+        for notification in notifications:
+            data.append({
+                "id": notification.notification_id,
+                "img": notification.image,
+                "time": notification.notification_time.strftime("%Y-%m-%d"),
+                "title": notification.title,
+                "content": notification.content
+            })
+        for news in newsList:
+            data.append({
+                "id": news.news_id,
+                "img": news.image,
+                "time": news.news_date.strftime("%Y-%m-%d"),
+                "title": news.title,
+                "content": news.content
+            })
         response = {
             'result': "1",
             'data': data
@@ -944,8 +952,8 @@ class UnreadMessage(View):
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         messages = Message.objects.filter(user_id=user_id, is_read=False).first()
         if messages:
-            return JsonResponse({"result": "1"})
-        return JsonResponse({"result": "0"})
+            return JsonResponse({"1"})
+        return JsonResponse({"0"})
 
 
 class ReadMessage(View):

@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
-    Patient
+    Patient, News
 from tool.logging_dec import logging_check
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
@@ -73,17 +73,107 @@ class LoginView(View):
                 return JsonResponse(response, status=401)
 
 
+class NewsManage(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
+        # Extract the necessary fields from the JSON object
+        news_title = json_obj.get('news_title', '')
+        news_content = json_obj.get('news_content', '')
+        news_link = json_obj.get('news_link', '')
+        news_time = datetime.now().date()
+        news_type = json_obj.get("news_type", "")
+        # Create a new News object and save it
+        news = News(
+            news_title=news_title,
+            news_content=news_content,
+            news_link=news_link,
+            news_date=news_time
+        )
+        news.save()
+        return JsonResponse({"result": "1", "message": "新闻添加成功！"})
+
+    @method_decorator(logging_check)
+    def delete(self, request):
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
+        news_id = json_obj.get('news_id')
+
+        # Check if the news exists and delete it
+        news = News.objects.filter(news_id=news_id).first()
+        if news:
+            news.delete()
+            return JsonResponse({"result": "1", "message": "新闻删除成功！"})
+        else:
+            return JsonResponse({"result": "0", "message": "新闻不存在！"})
+
+
+class NotificationManage(View):
+    @method_decorator(logging_check)
+    def post(self, request):
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
+        keys = json_obj.keys()
+        if 'notification_content' in keys:
+            notification_content = json_obj['notification_content']
+        else:
+            notification_content = ''
+        if 'notification_title' in keys:
+            notification_title = json_obj['notification_title']
+        else:
+            notification_title = ''
+        if 'notification_link' in keys:
+            notification_link = json_obj['notification_link']
+        else:
+            notification_link = ''
+        notification_time = datetime.now().date()
+        if 'notification_type' in keys:
+            notification_type = json_obj['notification_type']
+        else:
+            notification_type = ''
+        notification = Notification(
+            notification_type=notification_type,
+            notification_time=notification_time,
+            notification_link=notification_link,
+            notification_title=notification_title,
+            notification_content=notification_content
+        )
+        notification.save()
+        return JsonResponse({"result": "1", "message": "通知发送成功！"})
+
+    def delete(self, request):
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
+        notification_id = json_obj['notification_id']
+        notification = Notification.objects.filter(notification_id=notification_id).first()
+        if notification:
+            notification.delete()
+            return JsonResponse({"result": "1", "message": "通知删除成功！"})
+        else:
+            return JsonResponse({"result": "0", "message": "通知不存在！"})
+
+
+class DoctorImage(View):
+    @method_decorator(logging_check)
+    def post(self, request, doctor_id):
+        doctor_image = request.FILES.get('doctor_image')
+        doctor = Doctor.objects.get(doctor_id=doctor_id)
+        doctor.doctor_image = doctor_image
+        doctor.save()
+        return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
+
+
 class DoctorManagement(View):
     @method_decorator(logging_check)
     def post(self, request):
-        json_str = request.body
+        json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
         doctor_name = json_obj['doctor_name']
         doctor_introduction = json_obj['doctor_introduction']
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
-        doctor_image = request.FILES['image']
         info = Doctor.objects.filter(phone_number=doctor_phone).first()
         if info is None:
             Doctor.objects.create(
@@ -92,7 +182,7 @@ class DoctorManagement(View):
                 doctor_name=doctor_name,
                 department_id_id=doctor_dp_id,
                 doctor_introduction=doctor_introduction,
-                doctor_image=doctor_image
+                doctor_image=''
             )
             user = User(
                 phone_number=doctor_phone,
@@ -102,6 +192,7 @@ class DoctorManagement(View):
             user.save()
             response = {
                 "result": "1",
+
             }
             return JsonResponse(response)
         else:
@@ -136,7 +227,6 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
-        doctor_image = request.FILES['doctor_image']
         info = Doctor.objects.filter(doctor_id=doctor_id).first()
         if info is None:
             response = {
@@ -150,7 +240,6 @@ class DoctorManagement(View):
             info.department_id_id = doctor_dp_id
             info.doctor_phone = doctor_phone
             info.doctor_gender = doctor_gender
-            info.doctor_image = doctor_image
             info.save()
             response = {
                 "result": "1",
