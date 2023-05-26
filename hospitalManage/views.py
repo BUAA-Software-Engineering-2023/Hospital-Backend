@@ -280,7 +280,7 @@ class ScheduleManage(View):
                     "name": doctor.doctor_name,
                     "department": Department.objects.get(department_id=doctor.department_id_id).department_name,
                     "day": day,
-                    "image": request.build_absolute_uri(doctor.doctor_image)
+                    "image": request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
                 }
                 data.append(info)
             response = {

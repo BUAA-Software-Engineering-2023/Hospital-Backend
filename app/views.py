@@ -101,7 +101,7 @@ class NotificationList(View):
         for notification in notifications:
             notification_data = {
                 'id': notification.notification_id,
-                "image": request.build_absolute_uri(notification.image) if notification.image else '',
+                "image": request.build_absolute_uri(notification.image.url) if notification.image else '',
                 'title': notification.title,
                 'date': notification.notification_time,
                 "content": notification.content
@@ -135,7 +135,7 @@ class NewsList(View):
         for new in news:
             news_data = {
                 'id': new.news_id,
-                "image": request.build_absolute_uri(new.image) if new.image else None,
+                "image": request.build_absolute_uri(new.image.url) if new.image else None,
                 'title': new.news_title,
                 "content": new.news_content,
                 "type": new.type,
@@ -189,7 +189,7 @@ class CarouselMapList(View):
         for notification in notifications:
             data.append({
                 "id": notification.notification_id,
-                "img": request.build_absolute_uri(notification.image),
+                "img": request.build_absolute_uri(notification.image.url) if notification.image else None,
                 "time": notification.notification_time.strftime("%Y-%m-%d"),
                 "title": notification.title,
                 "content": notification.content
@@ -197,7 +197,7 @@ class CarouselMapList(View):
         for news in newsList:
             data.append({
                 "id": news.news_id,
-                "img": request.build_absolute_uri(news.image),
+                "img": request.build_absolute_uri(news.image.url) if news.image else None,
                 "time": news.news_date.strftime("%Y-%m-%d"),
                 "title": news.title,
                 "content": news.content
