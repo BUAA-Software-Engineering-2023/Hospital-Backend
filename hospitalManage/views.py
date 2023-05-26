@@ -1,5 +1,6 @@
 import hashlib
 import json
+from _decimal import Decimal
 from datetime import datetime, timedelta
 import time
 
@@ -282,7 +283,8 @@ class ScheduleManage(View):
                     "doctor_id": doctor_id,
                     "name": doctors.doctor_name,
                     "department": Department.objects.get(department_id=doctors.department_id_id).department_name,
-                    "day": day
+                    "day": day,
+                    "image": request.build_absolute_uri(doctor.doctor_image)
                 }
 
                 data.append(info)
@@ -577,6 +579,32 @@ class VacancySettingManage(View):
                          "vacancy_time": vacancy_setting.vacancy_time, "vacancy_day": vacancy_setting.vacancy_day})
         return JsonResponse({"result": "1", "data": data})
 
-    def post(self, request):
+    def put(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
+        vacancy_counts = json_obj['vacancy_counts']
+        vacancy_day = json_obj['vacancy_day']
+        tmp = 0
+        for start_time in range(8, 12):
+            vacancy_time = Decimal(str(start_time))
+            vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
+            vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
+            vacancy_setting.save()
+            tmp = tmp + 1
+            vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
+            vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
+            vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
+            vacancy_setting.save()
+
+        for start_time in range(14, 18):
+            tmp = tmp + 1
+            vacancy_time = Decimal(str(start_time))
+            vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
+            vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
+            vacancy_setting.save()
+            tmp = tmp + 1
+            vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
+            vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
+            vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
+            vacancy_setting.save()
+        return JsonResponse({"result": "1", "message": "修改放号成功！"})

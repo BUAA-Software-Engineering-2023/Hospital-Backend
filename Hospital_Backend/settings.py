@@ -101,10 +101,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CRONJOBS = [
-    # 定时函数每分钟执行一次
-    ('*/1 * * * *', 'hospitalManage.test.case'),
-]
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
