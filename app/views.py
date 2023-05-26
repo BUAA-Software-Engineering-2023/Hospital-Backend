@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import random
 import string
 import time
@@ -260,7 +261,15 @@ class UploadAvatar(View):
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         user = User.objects.get(user_id=user_id)
-        user.avatar = (request.FILES['avatar'])
+        image_file = request.FILES.get('avatar').open('r')
+        md5 = hashlib.md5(image_file.read()).hexdigest()
+        extra_name = image_file.name.split('.')[-1]
+        file_name = md5 + '.' + extra_name
+        if not os.path.exists(f'./media/{file_name}'):
+            image_file.seek(0)
+            with open(f'./media/{md5}.{extra_name}', 'wb') as f:
+                f.write(image_file.read())
+        user.avatar = f'./media/{md5}.{extra_name}'
         user.save()
         return JsonResponse({'result': "1", 'message': '上传头像成功！'})
 
@@ -415,7 +424,7 @@ class UserInfo(View):
                 "user_id": user_id,
                 "phone": user.phone_number,
                 "type": user.type,
-                "avatar": request.build_absolute_uri(user.avatar)
+                "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None
             }
             response = {
                 "result": "1",

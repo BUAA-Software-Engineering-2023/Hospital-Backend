@@ -300,9 +300,10 @@ class ScheduleManage(View):
         doctor_id = json_obj['doctor_id']
         is_mornings = json_obj['is_mornings']
         dates = json_obj['dates']
+        schedules = Schedule.objects.filter(doctor_id_id=doctor_id)
+        schedules.delete()
         try:
             i = 0
-
             with transaction.atomic():
                 for i in range(len(is_mornings)):
                     date = dates[i]
@@ -316,7 +317,7 @@ class ScheduleManage(View):
                             doctor_id_id=doctor_id
                         )
                         schedule.save()
-                vacancy_check()
+                # vacancy_check()
         except:
             return JsonResponse({"result": "0", "message": "排班设置失败！"})
         return JsonResponse({"result": "1", "message": "排班设置成功！"})
