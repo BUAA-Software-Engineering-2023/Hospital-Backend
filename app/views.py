@@ -3,7 +3,8 @@ import json
 import random
 import string
 import time
-from datetime import datetime, timedelta, time
+from _decimal import Decimal
+from datetime import datetime, timedelta
 
 import django.db
 from django.db.models import Q
@@ -979,8 +980,8 @@ class UnreadMessage(View):
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         messages = Message.objects.filter(user_id=user_id, is_read=False).first()
         if messages:
-            return JsonResponse({"result": "1","unread":True})
-        return JsonResponse({"result": "0","unread":False})
+            return JsonResponse({"result": "1", "unread": True})
+        return JsonResponse({"result": "0", "unread": False})
 
 
 class ReadMessage(View):
@@ -995,6 +996,44 @@ class ReadMessage(View):
             return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
+def generate_vacancy_settings():
+    tmp = Vacancy_setting.objects.all()
+    if tmp:
+        return
+    for day in range(1, 8):
+        for start_time in range(8, 12):
+            vacancy_time = Decimal(str(start_time))
+            vacancy_setting = Vacancy_setting(
+                vacancy_day=day,
+                vacancy_time=vacancy_time,
+                vacancy_cnt=10
+            )
+            vacancy_setting.save()
+            vacancy_time = Decimal(str(start_time))
+            vacancy_setting = Vacancy_setting(
+                vacancy_day=day,
+                vacancy_time=vacancy_time + Decimal('0.5'),
+                vacancy_cnt=10
+            )
+            vacancy_setting.save()
+
+        for start_time in range(14, 18):
+            vacancy_time = Decimal(str(start_time))
+            vacancy_setting = Vacancy_setting(
+                vacancy_day=day,
+                vacancy_time=vacancy_time,
+                vacancy_cnt=10
+            )
+            vacancy_setting.save()
+            vacancy_time = Decimal(str(start_time))
+            vacancy_setting = Vacancy_setting(
+                vacancy_day=day,
+                vacancy_time=vacancy_time + Decimal('0.5'),
+                vacancy_cnt=10
+            )
+            vacancy_setting.save()
+
+
 def generate_vacancy():
     vacancy_exists = Vacancy.objects.exists()
     if vacancy_exists and Vacancy.objects.latest('start_time').start_time > datetime.now():
@@ -1005,11 +1044,11 @@ def generate_vacancy():
         start_date = datetime.now()
         end_date = datetime.now() + timedelta(days=7)
     delta = end_date - start_date
-    for i in range(delta.days + 1):
+    for i in range(1, delta.days+1):
         current_date = start_date + timedelta(days=i)
 
         # 根据日期查询对应的Schedule
-        schedules = Schedule.objects.filter(schedule_day=current_date.weekday()+1)
+        schedules = Schedule.objects.filter(schedule_day=current_date.weekday() + 1)
 
         for schedule in schedules:
             if schedule.schedule_is_morning:
@@ -1022,29 +1061,34 @@ def generate_vacancy():
             current_time = start_time
             while current_time < end_time:
                 # 创建相应的Vacancy对象
-                vacancy_day = current_time.weekday()+1
+                vacancy_day = current_time.weekday() + 1
                 minutes = 0 if current_time.minute == 0 else 0.5
                 vacancy_time = current_time.hour + minutes
                 vacancy_setting = Vacancy_setting.objects.filter(vacancy_day=vacancy_day, vacancy_time=vacancy_time). \
                     first()
-                vacancy = Vacancy(
-                    doctor_id=schedule.doctor_id,
-                    start_time=current_time,
-                    end_time=current_time + timedelta(minutes=30),
-                    vacancy_left=vacancy_setting.vacancy_cnt,
-                    vacancy_count=vacancy_setting.vacancy_cnt
-                )
-                vacancy.save()
+                if vacancy_setting:
+                    vacancy = Vacancy(
+                        doctor_id=schedule.doctor_id,
+                        start_time=current_time,
+                        end_time=current_time + timedelta(minutes=30),
+                        vacancy_left=vacancy_setting.vacancy_cnt,
+                        vacancy_count=vacancy_setting.vacancy_cnt
+                    )
+                    vacancy.save()
                 current_time += timedelta(minutes=30)
 
 
 def start():
     scheduler = BackgroundScheduler()
     scheduler.add_jobstore(DjangoJobStore(), "default")
-    scheduler.add_job(generate_vacancy, 'cron', hour=21, minute=31)
+    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0)
+
     scheduler.start()
 
+
 try:
+    generate_vacancy_settings()
+    generate_vacancy()
     start()
 except django.db.ProgrammingError:
     pass
