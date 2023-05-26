@@ -85,15 +85,16 @@ class NewsManage(View):
         # Extract the necessary fields from the JSON object
         news_title = json_obj.get('news_title', '')
         news_content = json_obj.get('news_content', '')
-        news_link = json_obj.get('news_link', '')
+        news_image = json_obj.get('news_image', '')
         news_time = datetime.now().date()
         news_type = json_obj.get("news_type", "")
         # Create a new News object and save it
         news = News(
             news_title=news_title,
             news_content=news_content,
-            news_link=news_link,
-            news_date=news_time
+            type=news_type,
+            news_date=news_time,
+            image=news_image
         )
         news.save()
         return JsonResponse({"result": "1", "message": "新闻添加成功！"})
@@ -131,22 +132,22 @@ class UploadImage(View):
 class NotificationManage(View):
     @method_decorator(logging_check)
     def post(self, request):
-        notification_image = request.POST.get('notification_image')
-        notification_content = request.POST.get('notification_content')
-        notification_title = request.POST.get('notification_title')
-        notification_link = request.POST.get('notification_link')
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
+        notification_image = json_obj['notification_image']
+        notification_content = json_obj['notification_content']
+        notification_title = json_obj['notification_title']
         notification_time = datetime.now().date()
-        notification_type = request.POST.get('notification_type')
+        notification_type = json_obj['notification_type']
         notification = Notification(
-            notification_type=notification_type,
+            type=notification_type,
             notification_time=notification_time,
-            notification_link=notification_link,
-            notification_title=notification_title,
-            notification_content=notification_content,
-            notification_image=notification_image
+            title=notification_title,
+            content=notification_content,
+            image=notification_image
         )
         notification.save()
-        return JsonResponse({"result": "1", "message": "通知发送成功！", "id": notification.id})
+        return JsonResponse({"result": "1", "message": "通知发送成功！", "id": notification.notification_id})
 
     def delete(self, request):
         json_str = request.body.decode('utf-8')
