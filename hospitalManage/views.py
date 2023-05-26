@@ -125,8 +125,8 @@ class UploadImage(View):
             image_file.seek(0)
             with open(f'./media/{md5}.{extra_name}', 'wb') as f:
                 f.write(image_file.read())
-        return JsonResponse(
-            {"result": "1", "errno": 0, "data": {"url": request.build_absolute_uri(f'/media/{file_name}')}})
+            return JsonResponse(
+                {"result": "1", "errno": 0, "data": {"url": request.build_absolute_uri(f'/media/{file_name}')}})
 
 
 class NotificationManage(View):
