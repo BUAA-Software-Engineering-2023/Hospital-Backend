@@ -18,8 +18,6 @@ from app.models import Department, Notification, Vacancy, Appointment, Doctor, L
 from tool.logging_dec import logging_check
 
 import hashlib
-from PIL import Image
-import numpy as np
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
 
