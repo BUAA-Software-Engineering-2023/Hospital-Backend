@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
-    Patient, News
+    Patient, News, Vacancy_setting
 from tool.logging_dec import logging_check
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
@@ -300,9 +300,9 @@ class ScheduleManage(View):
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_id']
+        doctor_id = json_obj['doctor_ids']
         is_mornings = json_obj['is_morning']
-        dates = json_obj['date']
+        dates = json_obj['dates']
         try:
             with transaction.atomic():
                 for is_morning, date in is_mornings, dates:
@@ -566,3 +566,17 @@ def vacancy_check():
                 appointment.save()
             vacancy.delete()
     return JsonResponse({"result": "1"})
+
+
+class VacancySettingManage(View):
+    def get(self, request):
+        vacancy_settings = Vacancy_setting.objects.all()
+        data = []
+        for vacancy_setting in vacancy_settings:
+            data.append({"vacancy_setting_id": vacancy_setting.id, "vacancy_cnt": vacancy_setting.vacancy_cnt,
+                         "vacancy_time": vacancy_setting.vacancy_time, "vacancy_day": vacancy_setting.vacancy_day})
+        return JsonResponse({"result": "1", "data": data})
+
+    def post(self, request):
+        json_str = request.body.decode('utf-8')
+        json_obj = json.loads(json_str)
