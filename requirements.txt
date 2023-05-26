@@ -1,0 +1,5 @@
+APScheduler==3.10.1
+Django==3.2.19
+django_apscheduler==0.6.2
+PyJWT==2.7.0
+PyMySQL==1.0.3
