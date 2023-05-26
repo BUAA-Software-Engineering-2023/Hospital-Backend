@@ -9,6 +9,7 @@ class Department(models.Model):
     department_type = models.CharField(max_length=20, blank=False)
     department_introduction = models.CharField(max_length=255)
 
+
 class Doctor(models.Model):
     doctor_id = models.AutoField(primary_key=True)
     department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
@@ -19,12 +20,11 @@ class Doctor(models.Model):
     doctor_introduction = models.CharField(max_length=200)
 
 
-
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
     phone_number = models.CharField(max_length=200, blank=False)
     passwd = models.CharField(max_length=200)
-    avatar = models.ImageField(default='')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     type = models.CharField(max_length=200)
 
 
@@ -34,23 +34,26 @@ class Patient(models.Model):
     patient_name = models.CharField(max_length=200, blank=False)
     patient_gender = models.CharField(max_length=200)
     identification = models.CharField(max_length=200)
-    phone_number = models.CharField(max_length=200, blank=False)
+    phone_number = models.CharField(max_length=200, null=True, blank=True)
     absence = models.IntegerField(default=0)
-    address = models.CharField(max_length=200)
+    address = models.CharField(max_length=200, null=True, blank=True)
+    age = models.IntegerField(default=0)
+
 
 class Appointment(models.Model):
     appointment_id = models.AutoField(primary_key=True)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     appointment_time = models.DateTimeField()
-    appointment_status = models.CharField(max_length=200)
+    appointment_status = models.IntegerField(default=0)
+
 
 class MedicalRecord(models.Model):
     medical_record_id = models.AutoField(primary_key=True)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE)
     department_id = models.ForeignKey(Department, on_delete=models.CASCADE)
-    appointment_id = models.ForeignKey(Appointment,on_delete=models.CASCADE)
+    appointment_id = models.ForeignKey(Appointment, on_delete=models.CASCADE)
     symptom = models.CharField(max_length=200)
     prescription = models.CharField(max_length=200)
     result = models.CharField(max_length=200)
@@ -63,11 +66,8 @@ class Message(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.CharField(max_length=200)
-    message_time = models.DateField(blank=False)
+    message_time = models.DateTimeField(blank=False)
     is_read = models.BooleanField()
-
-
-
 
 
 class Notification(models.Model):
@@ -75,7 +75,8 @@ class Notification(models.Model):
     content = models.CharField(max_length=255)
     title = models.CharField(max_length=200)
     notification_time = models.DateField()
-    notification_link = models.CharField(max_length=255)
+    type = models.IntegerField(default=0)
+    image = models.ImageField()
 
 
 class Code(models.Model):
@@ -86,7 +87,7 @@ class Code(models.Model):
 
 
 class Admin(models.Model):
-    notification_id = models.BigAutoField(primary_key=True)
+    admin_id = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
 
@@ -101,8 +102,8 @@ class Payment(models.Model):
 class Vacancy(models.Model):
     vacancy_id = models.BigAutoField(primary_key=True)
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    vacancy_count = models.IntegerField(default=100)
-    vacancy_left = models.IntegerField(default=100)
+    vacancy_count = models.IntegerField(default=10)
+    vacancy_left = models.IntegerField(default=10)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
@@ -124,20 +125,18 @@ class Schedule(models.Model):
     doctor_id = models.ForeignKey(Doctor, on_delete=models.CASCADE)
 
 
-class CarouselMap(models.Model):
-    carousel_map_id = models.AutoField(primary_key=True)
-    carousel_map_img = models.ImageField()
-    carousel_map_link = models.CharField(max_length=100)
-
-
 class News(models.Model):
     news_id = models.AutoField(primary_key=True)
+    news_content = models.CharField(max_length=255)
     news_title = models.CharField(max_length=200)
-    news_link = models.CharField(max_length=200)
     news_date = models.DateField()
+    type = models.IntegerField(default=0)
+    image = models.ImageField()
 
 
 class Vacancy_setting(models.Model):
+    id = models.AutoField(primary_key=True)
     vacancy_cnt = models.IntegerField(default=10)
     vacancy_day = models.IntegerField()
-    vacancy_time = models.CharField(max_length=20)
+    vacancy_time = models.DecimalField(decimal_places=1, max_digits=3)
+

@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -37,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app',
     'hospitalManage',
-    'django_crontab',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -102,10 +101,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CRONJOBS = [
-    # 定时函数每分钟执行一次
-    ('*/1 * * * *', 'hospitalManage.test.case'),
-]
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -125,3 +120,8 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 JWT_TOKEN_KEY = 'pesenteur'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"

@@ -70,9 +70,22 @@ class Command(BaseCommand):
                 identification=fake.random_number(digits=18),
                 phone_number=fake.phone_number(),
                 absence=fake.random_int(0, 10),
-                address=fake.address()
+                address=fake.address(),
+                age=fake.random_number(digits=1)
             )
             patient.user_id.add(users[fake.random_int(0, len(users) - 1)])
+
+    def seed_appointments(self):
+        # Generate appointment data
+        doctors = Doctor.objects.all()
+        patients = Patient.objects.all()
+        for _ in range(10):
+            appointment = Appointment.objects.create(
+                doctor_id=doctors[fake.random_int(0, len(doctors) - 1)],
+                patient_id=patients[fake.random_int(0, len(patients) - 1)],
+                appointment_time=fake.date_time(),
+                appointment_status=fake.random_int(0, 2)
+            )
 
     def seed_medical_records(self):
         # Generate medical record data
@@ -80,11 +93,17 @@ class Command(BaseCommand):
         doctor = random.choice(doctor_list)
         patient = random.choice(Patient.objects.all())
         department = doctor.department_id
-
+        appointment = Appointment.objects.create(
+            doctor_id=doctor,
+            patient_id=patient,
+            appointment_time=fake.date_time(),
+            appointment_status=fake.random_int(0, 3)
+        )
         medical_record = MedicalRecord(
             doctor_id=doctor,
             patient_id=patient,
             department_id=department,
+            appointment_id=appointment,
             symptom=fake.text(),
             prescription=fake.text(),
             result=fake.text(),
@@ -110,18 +129,6 @@ class Command(BaseCommand):
             except IntegrityError:
                 continue
 
-    def seed_appointments(self):
-        # Generate appointment data
-        doctors = Doctor.objects.all()
-        patients = Patient.objects.all()
-        for _ in range(10):
-            appointment = Appointment.objects.create(
-                doctor_id=doctors[fake.random_int(0, len(doctors) - 1)],
-                patient_id=patients[fake.random_int(0, len(patients) - 1)],
-                appointment_time=fake.date_time(),
-                appointment_status=fake.random_element(['Scheduled', 'Cancelled', 'Completed'])
-            )
-
     def seed_notifications(self):
         # Generate notification data
         for _ in range(10):
@@ -129,7 +136,6 @@ class Command(BaseCommand):
                 content=fake.text(max_nb_chars=255),
                 title=fake.sentence(nb_words=4),
                 notification_time=fake.date(),
-                notification_link=fake.url()
             )
 
     # def seed_codes(self):
