@@ -301,7 +301,8 @@ class ScheduleManage(View):
         is_mornings = json_obj['is_mornings']
         dates = json_obj['dates']
         schedules = Schedule.objects.filter(doctor_id_id=doctor_id)
-        schedules.delete()
+        for schedule in schedules:
+            schedule.delete()
         try:
             i = 0
             with transaction.atomic():
@@ -551,21 +552,22 @@ def vacancy_check():
         else:
             start_time = vacancy.start_time
             appointments = Appointment.objects.filter(doctor_id_id=doctor_id, appointment_time=start_time)
-            for appointment in appointments:
-                patient_id = appointment.patient_id_id
-                patient = Patient.objects.get(patient_id=patient_id)
-                users = patient.user_id.all()
-                for user in users:
-                    message = Message(
-                        title="您的预约已取消",
-                        content=f"很抱歉，由于特殊原因，{patient.patient_name}的预约已取消。",
-                        message_time=datetime.now(),
-                        is_read=0,
-                        user_id_id=user.user_id
-                    )
-                    message.save()
-                appointment.appointment_status = 3
-                appointment.save()
+            if appointments:
+                for appointment in appointments:
+                    patient_id = appointment.patient_id_id
+                    patient = Patient.objects.get(patient_id=patient_id)
+                    users = patient.user_id.all()
+                    for user in users:
+                        message = Message(
+                            title="您的预约已取消",
+                            content=f"很抱歉，由于特殊原因，{patient.patient_name}的预约已取消。",
+                            message_time=datetime.now(),
+                            is_read=0,
+                            user_id_id=user.user_id
+                        )
+                        message.save()
+                    appointment.appointment_status = 3
+                    appointment.save()
             vacancy.delete()
     return JsonResponse({"result": "1"})
 
