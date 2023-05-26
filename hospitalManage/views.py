@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os.path
 from _decimal import Decimal
 from datetime import datetime, timedelta
 import time
@@ -15,6 +16,10 @@ from django.views import View
 from app.models import Department, Notification, Vacancy, Appointment, Doctor, Leave, Admin, User, Schedule, Message, \
     Patient, News, Vacancy_setting
 from tool.logging_dec import logging_check
+
+import hashlib
+from PIL import Image
+import numpy as np
 
 AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
 
@@ -110,48 +115,40 @@ class NewsManage(View):
             return JsonResponse({"result": "0", "message": "新闻不存在！"})
 
 
-class UploadNotificationImage(View):
-    @method_decorator(logging_check)
-    def post(self, request, notification_id):
-        notification_image = request.FILES.get('notification_image')
-        notification = Notification.objects.get(notification_id=notification_id)
-        notification.image = notification_image
-        notification.save()
-        return JsonResponse({"result": "1", "message": "上传成功"})
+class UploadImage(View):
+    # @method_decorator(logging_check)
+    def post(self, request):
+        image_file = request.FILES.get('image').open('r')
+        md5 = hashlib.md5(image_file.read()).hexdigest()
+        extra_name = image_file.name.split('.')[-1]
+        file_name = md5 + '.' + extra_name
+        if not os.path.exists(f'./media/{file_name}'):
+            image_file.seek(0)
+            with open(f'./media/{md5}.{extra_name}', 'wb') as f:
+                f.write(image_file.read())
+        return JsonResponse(
+            {"result": "1", "errno": 0, "data": {"src": request.build_absolute_uri(f'/media/{file_name}')}})
 
 
 class NotificationManage(View):
     @method_decorator(logging_check)
     def post(self, request):
-        json_str = request.body.decode('utf-8')
-        json_obj = json.loads(json_str)
-        keys = json_obj.keys()
-        if 'notification_content' in keys:
-            notification_content = json_obj['notification_content']
-        else:
-            notification_content = ''
-        if 'notification_title' in keys:
-            notification_title = json_obj['notification_title']
-        else:
-            notification_title = ''
-        if 'notification_link' in keys:
-            notification_link = json_obj['notification_link']
-        else:
-            notification_link = ''
+        notification_image = request.POST.get('notification_image')
+        notification_content = request.POST.get('notification_content')
+        notification_title = request.POST.get('notification_title')
+        notification_link = request.POST.get('notification_link')
         notification_time = datetime.now().date()
-        if 'notification_type' in keys:
-            notification_type = json_obj['notification_type']
-        else:
-            notification_type = ''
+        notification_type = request.POST.get('notification_type')
         notification = Notification(
             notification_type=notification_type,
             notification_time=notification_time,
             notification_link=notification_link,
             notification_title=notification_title,
-            notification_content=notification_content
+            notification_content=notification_content,
+            notification_image=notification_image
         )
         notification.save()
-        return JsonResponse({"result": "1", "message": "通知发送成功！"})
+        return JsonResponse({"result": "1", "message": "通知发送成功！", "id": notification.id})
 
     def delete(self, request):
         json_str = request.body.decode('utf-8')
@@ -259,7 +256,7 @@ class DoctorManagement(View):
 
 
 class ScheduleManage(View):
-    @method_decorator(logging_check)
+    # @method_decorator(logging_check)
     def get(self, request):
         try:
             data = []
@@ -278,15 +275,14 @@ class ScheduleManage(View):
                         }
                         day.append(day_data)
 
-                doctors = Doctor.objects.get(doctor_id=doctor_id)
+                doctor = Doctor.objects.get(doctor_id=doctor_id)
                 info = {
                     "doctor_id": doctor_id,
-                    "name": doctors.doctor_name,
-                    "department": Department.objects.get(department_id=doctors.department_id_id).department_name,
+                    "name": doctor.doctor_name,
+                    "department": Department.objects.get(department_id=doctor.department_id_id).department_name,
                     "day": day,
                     "image": request.build_absolute_uri(doctor.doctor_image)
                 }
-
                 data.append(info)
             response = {
                 "result": "1",
@@ -302,14 +298,18 @@ class ScheduleManage(View):
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
-        doctor_id = json_obj['doctor_ids']
-        is_mornings = json_obj['is_morning']
+        doctor_id = json_obj['doctor_id']
+        is_mornings = json_obj['is_mornings']
         dates = json_obj['dates']
         try:
+            i = 0
+
             with transaction.atomic():
-                for is_morning, date in is_mornings, dates:
-                    schedule = Schedule.objects.filter(schedule_day=date, schedule_is_morning=is_morning, doctor_id_id
-                    =doctor_id).first()
+                for i in range(len(is_mornings)):
+                    date = dates[i]
+                    is_morning = is_mornings[i]
+                    schedule = Schedule.objects.filter(schedule_day=date, schedule_is_morning=is_morning,
+                                                       doctor_id_id=doctor_id).first()
                     if schedule is None:
                         schedule = Schedule(
                             schedule_day=date,
