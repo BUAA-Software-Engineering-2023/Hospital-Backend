@@ -455,7 +455,8 @@ class LoginCode(View):
                     return JsonResponse(response)
         else:
             try:
-                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY)
+                jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY,algorithms='HS256')
+                print(jwt_token)
                 response = {
                     "result": "0",
                     "reason": "已登录，请勿重复登录"
@@ -466,7 +467,7 @@ class LoginCode(View):
                     "result": "0",
                     "reason": "登录状态异常"
                 }
-                return JsonResponse(response), 401
+                return JsonResponse(response)
 
 
 def make_token(username, expire=3600 * 24):
