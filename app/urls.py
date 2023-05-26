@@ -44,5 +44,6 @@ urlpatterns = [
     path('api/readMessage/<slug:message_id>', ReadMessage.as_view()),
     path('api/pay/<slug:payment_id>', Pay.as_view()),
     path('api/getPaymentStatus/<slug:payment_id>', GetPaymentStatus.as_view()),
-    path('api/paymentList/<slug:appointment_id>',PaymentList.as_view())
+    path('api/paymentList/<slug:appointment_id>', PaymentList.as_view()),
+    # path('api/')
 ]
