@@ -83,18 +83,65 @@ class DoctorList(View):
 
 
 class NotificationList(View):
-    def get(self, request):
-        notifications = Notification.objects.all()
-
+    def post(self, request):
+        notifications = Notification.objects.all().order_by("-notification_time", "notification_id")
+        offset = 1
+        count = 10
+        if request.body:
+            json_str = request.body
+            json_obj = json.loads(json_str)
+            keys = json_obj.keys()
+            if 'offset' in keys:
+                offset = json_obj['offset']
+            if 'count' in keys:
+                count = json_obj['count']
         # Serialize notification objects to JSON
+        notifications = notifications[offset - 1:offset + count]
         data = []
         for notification in notifications:
             notification_data = {
                 'id': notification.notification_id,
+                "image": request.build_absolute_uri(notification.image) if notification.image else '',
                 'title': notification.title,
                 'date': notification.notification_time,
+                "content": notification.content
             }
             data.append(notification_data)
+
+        response = {
+            'result': "1",
+            'data': data
+        }
+        return JsonResponse(response)
+
+
+class NewsList(View):
+    def post(self, request):
+        news = News.objects.all().order_by("-news_date", "news_id")
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        keys = json_obj.keys()
+        if 'offset' in keys:
+            offset = json_obj['offset']
+        else:
+            offset = 1
+        if 'count' in keys:
+            count = json_obj['count']
+        else:
+            count = 10
+        news = news[offset - 1:offset + count]
+        # Serialize notification objects to JSON
+        data = []
+        for new in news:
+            news_data = {
+                'id': new.news_id,
+                "image": request.build_absolute_uri(new.image) if new.image else None,
+                'title': new.news_title,
+                "content": new.news_content,
+                "type": new.type,
+                "date": new.news_date
+            }
+            data.append(news_data)
 
         response = {
             'result': "1",
@@ -163,16 +210,30 @@ class CarouselMapList(View):
 
 
 class NewsList(View):
-    def get(self, request):
-        news = News.objects.all()
+    def post(self, request):
+        news = News.objects.all().order_by("-news_date", "news_id")
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        keys = json_obj.keys()
+        if 'offset' in keys:
+            offset = json_obj['offset']
+        else:
+            offset = 1
+        if 'count' in keys:
+            count = json_obj['count']
+        else:
+            count = 10
+        news = news[offset - 1:offset + count]
         # Serialize notification objects to JSON
         data = []
         for new in news:
             news_data = {
                 'id': new.news_id,
+                "image": request.build_absolute_uri(new.image) if new.image else None,
                 'title': new.news_title,
-                'link': new.news_link,
-                'date': new.news_date,
+                "content": new.news_content,
+                "type": new.type,
+                "date": new.news_date
             }
             data.append(news_data)
 
@@ -215,7 +276,7 @@ class VacancyList(View):
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
                 "department": Department.objects.get(department_id=departmentId).department_name,
-                "image": request.build_absolute_uri(doctor_info.doctor_image) if doctor_info.doctor_image else None,
+                "image": request.build_absolute_uri(doctor_info.doctor_image.url) if doctor_info.doctor_image else None,
                 "introduction": doctor_info.doctor_introduction,
                 "available": available
             })
@@ -1044,7 +1105,7 @@ def generate_vacancy():
         start_date = datetime.now()
         end_date = datetime.now() + timedelta(days=7)
     delta = end_date - start_date
-    for i in range(1, delta.days+1):
+    for i in range(1, delta.days + 1):
         current_date = start_date + timedelta(days=i)
 
         # 根据日期查询对应的Schedule
