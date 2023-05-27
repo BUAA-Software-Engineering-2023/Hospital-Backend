@@ -1082,6 +1082,8 @@ def generate_vacancy_settings():
             )
             vacancy_setting.save()
             vacancy_time = Decimal(str(start_time))
+            if vacancy_time == 11:
+                break
             vacancy_setting = Vacancy_setting(
                 vacancy_day=day,
                 vacancy_time=vacancy_time + Decimal('0.5'),
@@ -1098,6 +1100,8 @@ def generate_vacancy_settings():
             )
             vacancy_setting.save()
             vacancy_time = Decimal(str(start_time))
+            if vacancy_time == 17:
+                break
             vacancy_setting = Vacancy_setting(
                 vacancy_day=day,
                 vacancy_time=vacancy_time + Decimal('0.5'),
