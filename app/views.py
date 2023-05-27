@@ -306,7 +306,7 @@ class UploadAvatar(View):
             image_file.seek(0)
             with open(f'./media/{md5}.{extra_name}', 'wb') as f:
                 f.write(image_file.read())
-        user.avatar = f'./media/{md5}.{extra_name}'
+        user.avatar = f'./{md5}.{extra_name}'
         user.save()
         return JsonResponse({'result': "1", 'message': '上传头像成功！'})
 
@@ -1053,7 +1053,7 @@ class UnreadMessage(View):
         messages = Message.objects.filter(user_id=user_id, is_read=False).first()
         if messages:
             return JsonResponse({"result": "1", "unread": True})
-        return JsonResponse({"result": "0", "unread": False})
+        return JsonResponse({"result": "1", "unread": False})
 
 
 class ReadMessage(View):
