@@ -86,6 +86,7 @@ class DoctorList(View):
 class NotificationList(View):
     def post(self, request):
         notifications = Notification.objects.all().order_by("-notification_time", "notification_id")
+        total = len(notifications)
         offset = 1
         count = 10
         if request.body:
@@ -105,20 +106,40 @@ class NotificationList(View):
                 "image": request.build_absolute_uri(notification.image.url) if notification.image else '',
                 'title': notification.title,
                 'date': notification.notification_time,
-                "content": notification.content
+                "content": notification.content,
+                "short_info":notification.short_info
             }
             data.append(notification_data)
 
         response = {
             'result': "1",
-            'data': data
+            'data': data,
+            "count":count,
+            "total":total
         }
         return JsonResponse(response)
+
+class NotificationDetail(View):
+    def get(self,request,notification_id):
+        try:
+            notification = Notification.objects.get(notification_id=notification_id)
+
+            notification_data = {
+                "id" : notification.notification_id,
+                "image": request.build_absolute_uri(notification.image.url) if notification.image else '',
+                'title': notification.title,
+                'date': notification.notification_time,
+                "content": notification.content
+            }
+            return JsonResponse({"result":"1","data":notification_data})
+        except:
+            return JsonResponse({"result":"0","message":"通知id不存在"})
 
 
 class NewsList(View):
     def post(self, request):
         news = News.objects.all().order_by("-news_date", "news_id")
+        total = len(news)
         json_str = request.body
         json_obj = json.loads(json_str)
         keys = json_obj.keys()
@@ -146,11 +167,27 @@ class NewsList(View):
 
         response = {
             'result': "1",
-            'data': data
+            'data': data,
+            "count":count,
+            "total":total
         }
         return JsonResponse(response)
 
-
+class NewsDetail(View):
+    def get(self, request, news_id):
+        try:
+            new = News.objects.get(news_id=news_id)
+            news_data = {
+                'id': new.news_id,
+                "image": request.build_absolute_uri(new.image.url) if new.image else None,
+                'title': new.news_title,
+                "content": new.news_content,
+                "type": new.type,
+                "date": new.news_date
+            }
+            return JsonResponse({"result": "1", "data": news_data})
+        except:
+            return JsonResponse({"result": "0", "message": "新闻id不存在"})
 class DoctorDetail(View):
     def get(self, request, doctor_id):
         try:
