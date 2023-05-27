@@ -88,13 +88,15 @@ class NewsManage(View):
         news_image = json_obj.get('news_image', '')
         news_time = datetime.now().date()
         news_type = json_obj.get("news_type", "")
+        news_short = json_obj.get("short_info","")
         # Create a new News object and save it
         news = News(
             news_title=news_title,
             news_content=news_content,
             type=news_type,
             news_date=news_time,
-            image=news_image
+            image=news_image,
+            short_info=news_short
         )
         news.save()
         return JsonResponse({"result": "1", "message": "新闻添加成功！"})
@@ -453,6 +455,7 @@ class VacancyManage(View):
 
 
 class LeaveListManage(View):
+    @method_decorator(logging_check)
     def get(self, request):
         leaves = Leave.objects.exclude(leave_status='approved')
         leaves = leaves.exclude(leave_status='denied')
@@ -579,6 +582,7 @@ def vacancy_check():
 
 
 class VacancySettingManage(View):
+    @method_decorator(logging_check)
     def get(self, request):
         vacancy_settings = Vacancy_setting.objects.all()
         data = []
