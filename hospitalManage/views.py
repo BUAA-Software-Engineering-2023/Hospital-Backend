@@ -115,7 +115,7 @@ class NewsManage(View):
 
 
 class UploadImage(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request):
         image_file = request.FILES.get('image').open('r')
         md5 = hashlib.md5(image_file.read()).hexdigest()
@@ -172,7 +172,7 @@ class DoctorImage(View):
 
 
 class DoctorManagement(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -255,7 +255,7 @@ class DoctorManagement(View):
 
 
 class ScheduleManage(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def get(self, request):
         try:
             data = []
@@ -471,7 +471,7 @@ class LeaveListManage(View):
 
 
 class ProcessLeave(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request, leave_status):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -479,6 +479,7 @@ class ProcessLeave(View):
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
+        leave.save()
         if leave_status == "approved":
             schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
             for schedule in schedules:
