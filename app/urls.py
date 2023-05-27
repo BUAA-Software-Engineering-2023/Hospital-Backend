@@ -3,14 +3,16 @@ from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList
     PatientList, UserInfo, PatientDetail, UserView, SendCode, LoginCode, LoginPassWd, MakeAppointment, MakeMedicalRecord \
     , MakeLeave, CancelLeave, LeaveList, VacancyDetail, PatientWaiting, PatientAppointment, CancelAppointment, \
     GetMedicalRecord, AddPatient, DeletePatient, UpdatePatient, UploadAvatar, GetMessage, UnreadMessage, ReadMessage, \
-    Pay, GetPaymentStatus, PaymentList
+    Pay, GetPaymentStatus, PaymentList,NotificationDetail,NewsDetail
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),  # API endpoint for retrieving a list of departments
     path('api/doctorList', DoctorList.as_view()),  # API endpoint for retrieving a list of doctors
     path('api/notificationList', NotificationList.as_view()),  # API endpoint for retrieving a list of notifications
+    path('api/notificationDetail/<slug:notification_id>', NotificationDetail.as_view()),  # API endpoint for retrieving a list of notifications
     path('api/carouselList', CarouselMapList.as_view()),  # API endpoint for retrieving a list of carousel maps
     path('api/newsList', NewsList.as_view()),  # API endpoint for retrieving a list of news
+    path('api/newsDetail/<slug:news_id>', NewsDetail.as_view()),  # API endpoint for retrieving a list of news
     path('api/vacancyList', VacancyList.as_view()),  # API endpoint for retrieving a list of vacancies
     path('api/doctorDetail/<slug:doctor_id>', DoctorDetail.as_view()),
     # API endpoint for retrieving details of a specific doctor
