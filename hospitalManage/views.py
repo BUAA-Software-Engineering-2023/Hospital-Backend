@@ -462,8 +462,8 @@ class LeaveListManage(View):
             data.append({
                 "leave_id": leave.leave_id,
                 "doctor_name": doctor_name,
-                "start_time": leave.start_time,
-                "end_time": leave.end_time,
+                "start_time": leave.start_time.strftime("%Y-%m-%d %H:%M"),
+                "end_time": leave.end_time.strftime("%Y-%m-%d %H:%M"),
                 "type": leave.type,
                 "reason": leave.reseon
             })
