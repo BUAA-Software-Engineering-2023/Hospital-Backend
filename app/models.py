@@ -72,7 +72,8 @@ class Message(models.Model):
 
 class Notification(models.Model):
     notification_id = models.BigAutoField(primary_key=True)
-    content = models.CharField(max_length=255)
+    content = models.TextField(max_length=100000)
+    short_info = models.CharField(max_length=255)
     title = models.CharField(max_length=200)
     notification_time = models.DateField()
     type = models.IntegerField(default=0)
@@ -127,7 +128,8 @@ class Schedule(models.Model):
 
 class News(models.Model):
     news_id = models.AutoField(primary_key=True)
-    news_content = models.CharField(max_length=255)
+    news_content = models.TextField(max_length=100000)
+    short_info = models.CharField(max_length=255)
     news_title = models.CharField(max_length=200)
     news_date = models.DateField()
     type = models.IntegerField(default=0)
