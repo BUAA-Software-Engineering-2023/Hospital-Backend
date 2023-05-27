@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import random
 import string
 import time
@@ -101,7 +102,7 @@ class NotificationList(View):
         for notification in notifications:
             notification_data = {
                 'id': notification.notification_id,
-                "image": request.build_absolute_uri(notification.image) if notification.image else '',
+                "image": request.build_absolute_uri(notification.image.url) if notification.image else '',
                 'title': notification.title,
                 'date': notification.notification_time,
                 "content": notification.content
@@ -135,7 +136,7 @@ class NewsList(View):
         for new in news:
             news_data = {
                 'id': new.news_id,
-                "image": request.build_absolute_uri(new.image) if new.image else None,
+                "image": request.build_absolute_uri(new.image.url) if new.image else None,
                 'title': new.news_title,
                 "content": new.news_content,
                 "type": new.type,
@@ -189,7 +190,7 @@ class CarouselMapList(View):
         for notification in notifications:
             data.append({
                 "id": notification.notification_id,
-                "img": request.build_absolute_uri(notification.image),
+                "img": request.build_absolute_uri(notification.image.url) if notification.image else None,
                 "time": notification.notification_time.strftime("%Y-%m-%d"),
                 "title": notification.title,
                 "content": notification.content
@@ -197,7 +198,7 @@ class CarouselMapList(View):
         for news in newsList:
             data.append({
                 "id": news.news_id,
-                "img": request.build_absolute_uri(news.image),
+                "img": request.build_absolute_uri(news.image.url) if news.image else None,
                 "time": news.news_date.strftime("%Y-%m-%d"),
                 "title": news.title,
                 "content": news.content
@@ -260,7 +261,15 @@ class UploadAvatar(View):
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
         user = User.objects.get(user_id=user_id)
-        user.avatar = (request.FILES['avatar'])
+        image_file = request.FILES.get('avatar').open('r')
+        md5 = hashlib.md5(image_file.read()).hexdigest()
+        extra_name = image_file.name.split('.')[-1]
+        file_name = md5 + '.' + extra_name
+        if not os.path.exists(f'./media/{file_name}'):
+            image_file.seek(0)
+            with open(f'./media/{md5}.{extra_name}', 'wb') as f:
+                f.write(image_file.read())
+        user.avatar = f'./media/{md5}.{extra_name}'
         user.save()
         return JsonResponse({'result': "1", 'message': '上传头像成功！'})
 
@@ -415,7 +424,7 @@ class UserInfo(View):
                 "user_id": user_id,
                 "phone": user.phone_number,
                 "type": user.type,
-                "avatar": request.build_absolute_uri(user.avatar)
+                "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None
             }
             response = {
                 "result": "1",
