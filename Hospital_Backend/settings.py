@@ -72,6 +72,16 @@ WSGI_APPLICATION = 'Hospital_Backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'hospital',
+#         'USER': 'se2023',
+#         'PASSWORD': 'se2023',
+#         'HOST': 'azure.bienboy.eu.org',
+#         'PORT': '1108'
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
