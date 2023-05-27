@@ -304,7 +304,6 @@ class ScheduleManage(View):
         for schedule in schedules:
             schedule.delete()
         try:
-            i = 0
             with transaction.atomic():
                 for i in range(len(is_mornings)):
                     date = dates[i]
@@ -318,7 +317,7 @@ class ScheduleManage(View):
                             doctor_id_id=doctor_id
                         )
                         schedule.save()
-                # vacancy_check()
+                vacancy_check()
         except:
             return JsonResponse({"result": "0", "message": "排班设置失败！"})
         return JsonResponse({"result": "1", "message": "排班设置成功！"})
@@ -592,6 +591,8 @@ class VacancySettingManage(View):
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
+            if start_time == 11:
+                break
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
@@ -604,6 +605,8 @@ class VacancySettingManage(View):
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
+            if start_time == 17:
+                break
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
