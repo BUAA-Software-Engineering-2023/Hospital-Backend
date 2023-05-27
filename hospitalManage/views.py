@@ -115,7 +115,7 @@ class NewsManage(View):
 
 
 class UploadImage(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request):
         image_file = request.FILES.get('image').open('r')
         md5 = hashlib.md5(image_file.read()).hexdigest()
@@ -172,7 +172,7 @@ class DoctorImage(View):
 
 
 class DoctorManagement(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -255,7 +255,7 @@ class DoctorManagement(View):
 
 
 class ScheduleManage(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def get(self, request):
         try:
             data = []
@@ -471,7 +471,7 @@ class LeaveListManage(View):
 
 
 class ProcessLeave(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request, leave_status):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -479,63 +479,67 @@ class ProcessLeave(View):
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
-        if leave_status == "approved":
-            schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
-            for schedule in schedules:
-                if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
-                        leave.end_time.weekday() + 1) \
-                        or (
-                        schedule.schedule_day == leave.start_time.weekday() and leave.start_time.hour > 12
-                        and schedule.schedule_is_morning == 1) \
-                        or (
-                        schedule.schedule_day == leave.end_time.weekday() and leave.end_time.hour < 12
-                        and schedule.schedule_is_morning == 0):
-                    continue
-                else:
-                    date = schedule.schedule_day
-                    current_date = datetime.now().date()
-                    next_week = current_date + timedelta(days=7)
-                    vacancies = Vacancy.objects.filter(
-                        Q(start_time__week_day=date) &
-                        Q(doctor_id=leave.doctor_id) &
-                        Q(start_time__date__range=[current_date, next_week])
-                    )
-                    for vacancy in vacancies:
-                        start_time = vacancy.start_time
-                        is_morning = schedule.schedule_is_morning
-                        if is_morning * 12 < start_time.hour < is_morning * 12 + 12:
-                            appointments = Appointment.objects.filter(doctor_id=leave.doctor_id,
-                                                                      appointment_time=start_time)
-                            for appointment in appointments:
-                                patient_id = appointment.patient_id_id
-                                patient = Patient.objects.get(patient_id=patient_id)
-                                users = patient.user_id.all()
-                                doctor_name = Doctor.objects.get(doctor_id=doctor_id).doctor_name
-                                for user in users:
-                                    message = Message(
-                                        title="您的预约已取消",
-                                        content=f"很抱歉，由于{doctor_name}医生的原因，{patient.patient_name}的预约已取消。",
-                                        message_time=datetime.now(),
-                                        is_read=0,
-                                        user_id_id=user.user_id
-                                    )
-                                    message.save()
-                                appointment.appointment_status = 3
-                                appointment.save()
-                            Vacancy.delete(vacancy)
-            return JsonResponse({"result": "1", "messages": "请假批准成功！"})
-        else:
-            phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
-            user = User.objects.filter(phone_number=phone_number).first()
-            message = Message(
-                title=f"您的请假未批准",
-                content="",
-                message_time=datetime.now(),
-                is_read=0,
-                user_id_id=user.user_id
-            )
-            message.save()
-            return JsonResponse({"result": "0", "messages": "不批准请假成功！"})
+        leave.save()
+        try:
+            if leave_status == "approved":
+                schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
+                for schedule in schedules:
+                    if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
+                            leave.end_time.weekday() + 1) \
+                            or (
+                            schedule.schedule_day == leave.start_time.weekday() and leave.start_time.hour > 12
+                            and schedule.schedule_is_morning == 1) \
+                            or (
+                            schedule.schedule_day == leave.end_time.weekday() and leave.end_time.hour < 12
+                            and schedule.schedule_is_morning == 0):
+                        continue
+                    else:
+                        date = schedule.schedule_day
+                        current_date = datetime.now().date()
+                        next_week = current_date + timedelta(days=7)
+                        vacancies = Vacancy.objects.filter(
+                            Q(start_time__week_day=date) &
+                            Q(doctor_id=leave.doctor_id) &
+                            Q(start_time__date__range=[current_date, next_week])
+                        )
+                        for vacancy in vacancies:
+                            start_time = vacancy.start_time
+                            is_morning = schedule.schedule_is_morning
+                            if is_morning * 12 < start_time.hour < is_morning * 12 + 12:
+                                appointments = Appointment.objects.filter(doctor_id=leave.doctor_id,
+                                                                          appointment_time=start_time)
+                                for appointment in appointments:
+                                    patient_id = appointment.patient_id_id
+                                    patient = Patient.objects.get(patient_id=patient_id)
+                                    users = patient.user_id.all()
+                                    doctor_name = Doctor.objects.get(doctor_id=doctor_id).doctor_name
+                                    for user in users:
+                                        message = Message(
+                                            title="您的预约已取消",
+                                            content=f"很抱歉，由于{doctor_name}医生的原因，{patient.patient_name}的预约已取消。",
+                                            message_time=datetime.now(),
+                                            is_read=0,
+                                            user_id_id=user.user_id
+                                        )
+                                        message.save()
+                                    appointment.appointment_status = 3
+                                    appointment.save()
+                                Vacancy.delete(vacancy)
+                return JsonResponse({"result": "1", "message": "请假批准成功！"})
+            else:
+                phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
+                user = User.objects.filter(phone_number=phone_number).first()
+                message = Message(
+                    title=f"您的请假未批准",
+                    content="",
+                    message_time=datetime.now(),
+                    is_read=0,
+                    user_id_id=user.user_id
+                )
+                message.save()
+                return JsonResponse({"result": "1", "message": "不批准请假成功！"})
+        except:
+            return JsonResponse({"result": "0", "message": "出错啦！"})
 
 
 def vacancy_check():
