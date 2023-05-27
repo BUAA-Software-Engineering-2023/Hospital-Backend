@@ -452,13 +452,15 @@ class VacancyManage(View):
         return JsonResponse(response)
 
 
-class LeaveList(View):
+class LeaveListManage(View):
     def get(self, request):
-        leaves = Leave.objects.exclude(leave_status='已通过')
+        leaves = Leave.objects.exclude(leave_status='approved')
+        leaves = leaves.exclude(leave_status='denied')
         data = []
         for leave in leaves:
             doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
             data.append({
+                "leave_id": leave.leave_id,
                 "doctor_name": doctor_name,
                 "start_time": leave.start_time,
                 "end_time": leave.end_time,
@@ -469,7 +471,7 @@ class LeaveList(View):
 
 
 class ProcessLeave(View):
-    @method_decorator(logging_check)
+    # @method_decorator(logging_check)
     def post(self, request, leave_status):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -477,7 +479,7 @@ class ProcessLeave(View):
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
-        if leave_status == "已通过":
+        if leave_status == "approved":
             schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
             for schedule in schedules:
                 if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
@@ -521,6 +523,7 @@ class ProcessLeave(View):
                                 appointment.appointment_status = 3
                                 appointment.save()
                             Vacancy.delete(vacancy)
+            return JsonResponse({"result": "1", "messages": "请假批准成功！"})
         else:
             phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
             user = User.objects.filter(phone_number=phone_number).first()
@@ -529,10 +532,10 @@ class ProcessLeave(View):
                 content="",
                 message_time=datetime.now(),
                 is_read=0,
-                user_id=user
+                user_id_id=user.user_id
             )
             message.save()
-        return JsonResponse({"result": "1"})
+            return JsonResponse({"result": "0", "messages": "不批准请假成功！"})
 
 
 def vacancy_check():
