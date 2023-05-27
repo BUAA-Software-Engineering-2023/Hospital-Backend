@@ -609,4 +609,3 @@ class VacancySettingManage(View):
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
         return JsonResponse({"result": "1", "message": "修改放号成功！"})
-class 
