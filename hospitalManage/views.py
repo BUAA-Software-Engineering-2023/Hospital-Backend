@@ -88,7 +88,7 @@ class NewsManage(View):
         news_image = json_obj.get('news_image', '')
         news_time = datetime.now().date()
         news_type = json_obj.get("news_type", "")
-        news_short = json_obj.get("short_info","")
+        news_short = json_obj.get("short_info", "")
         # Create a new News object and save it
         news = News(
             news_title=news_title,
@@ -127,6 +127,9 @@ class UploadImage(View):
             image_file.seek(0)
             with open(f'./media/{md5}.{extra_name}', 'wb') as f:
                 f.write(image_file.read())
+            return JsonResponse(
+                {"result": "1", "errno": 0, "data": {"url": request.build_absolute_uri(f'/media/{file_name}')}})
+        else:
             return JsonResponse(
                 {"result": "1", "errno": 0, "data": {"url": request.build_absolute_uri(f'/media/{file_name}')}})
 
