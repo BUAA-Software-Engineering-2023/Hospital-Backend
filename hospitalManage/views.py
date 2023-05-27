@@ -78,7 +78,7 @@ class LoginView(View):
 
 
 class NewsManage(View):
-    @method_decorator(logging_check)
+    # @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -88,13 +88,15 @@ class NewsManage(View):
         news_image = json_obj.get('news_image', '')
         news_time = datetime.now().date()
         news_type = json_obj.get("news_type", "")
+        news_short = json_obj.get("short_info","")
         # Create a new News object and save it
         news = News(
             news_title=news_title,
             news_content=news_content,
             type=news_type,
             news_date=news_time,
-            image=news_image
+            image=news_image,
+            short_info=news_short
         )
         news.save()
         return JsonResponse({"result": "1", "message": "新闻添加成功！"})
