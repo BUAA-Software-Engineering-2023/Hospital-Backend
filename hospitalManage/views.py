@@ -78,7 +78,7 @@ class LoginView(View):
 
 
 class NewsManage(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
@@ -455,6 +455,7 @@ class VacancyManage(View):
 
 
 class LeaveListManage(View):
+    @method_decorator(logging_check)
     def get(self, request):
         leaves = Leave.objects.exclude(leave_status='approved')
         leaves = leaves.exclude(leave_status='denied')
@@ -581,6 +582,7 @@ def vacancy_check():
 
 
 class VacancySettingManage(View):
+    @method_decorator(logging_check)
     def get(self, request):
         vacancy_settings = Vacancy_setting.objects.all()
         data = []
