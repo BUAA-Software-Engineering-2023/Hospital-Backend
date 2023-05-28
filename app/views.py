@@ -700,17 +700,17 @@ class MakeAppointment(View):
                 vacancy.vacancy_left = vacancy.vacancy_left - 1
                 appointment = Appointment(
                     appointment_time=start_time,
-                    appointment_status=3,
+                    appointment_status=4,
                     doctor_id_id=doctor_id,
                     patient_id_id=patient_id
                 )
+                appointment.save()
                 payment = Payment(
                     payment_status="待支付",
                     amount=20,
                     appointment_id_id=appointment.appointment_id
                 )
                 payment.save()
-                appointment.save()
                 vacancy.save()
                 return JsonResponse({"result": "1", "message": "预约成功！"})
         except:
