@@ -66,7 +66,8 @@ class LoginView(View):
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 response = {
                     "result": "1",
-                    "message": "登录成功！"
+                    "message": "登录成功！",
+                    "data": {"token": token}
                 }
                 return JsonResponse(response)
             except:
