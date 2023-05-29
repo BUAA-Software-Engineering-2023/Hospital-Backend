@@ -107,33 +107,34 @@ class NotificationList(View):
                 'title': notification.title,
                 'date': notification.notification_time,
                 "content": notification.content,
-                "short_info":notification.short_info
+                "short_info": notification.short_info
             }
             data.append(notification_data)
 
         response = {
             'result': "1",
             'data': data,
-            "count":count,
-            "total":total
+            "count": count,
+            "total": total
         }
         return JsonResponse(response)
 
+
 class NotificationDetail(View):
-    def get(self,request,notification_id):
+    def get(self, request, notification_id):
         try:
             notification = Notification.objects.get(notification_id=notification_id)
 
             notification_data = {
-                "id" : notification.notification_id,
+                "id": notification.notification_id,
                 "image": request.build_absolute_uri(notification.image.url) if notification.image else '',
                 'title': notification.title,
                 'date': notification.notification_time,
                 "content": notification.content
             }
-            return JsonResponse({"result":"1","data":notification_data})
+            return JsonResponse({"result": "1", "data": notification_data})
         except:
-            return JsonResponse({"result":"0","message":"通知id不存在"})
+            return JsonResponse({"result": "0", "message": "通知id不存在"})
 
 
 class NewsList(View):
@@ -168,10 +169,11 @@ class NewsList(View):
         response = {
             'result': "1",
             'data': data,
-            "count":count,
-            "total":total
+            "count": count,
+            "total": total
         }
         return JsonResponse(response)
+
 
 class NewsDetail(View):
     def get(self, request, news_id):
@@ -188,6 +190,8 @@ class NewsDetail(View):
             return JsonResponse({"result": "1", "data": news_data})
         except:
             return JsonResponse({"result": "0", "message": "新闻id不存在"})
+
+
 class DoctorDetail(View):
     def get(self, request, doctor_id):
         try:
@@ -671,14 +675,14 @@ class PaymentList(View):
 
 class Pay(View):
     def post(self, request, payment_id):
-        pay = Payment.objects.get(pay_id=payment_id)
+        pay = Payment.objects.get(payment_id=payment_id)
         pay.payment_status = '已支付'
         pay.save()
 
 
 class GetPaymentStatus(View):
     def get(self, request, payment_id):
-        pay = Payment.objects.get(pay_id=payment_id)
+        pay = Payment.objects.get(payment_id=payment_id)
         return JsonResponse({"result": "1", "status": pay.payment_status})
 
 
@@ -712,7 +716,8 @@ class MakeAppointment(View):
                 )
                 payment.save()
                 vacancy.save()
-                return JsonResponse({"result": "1", "message": "预约成功！"})
+                return JsonResponse(
+                    {"result": "1", "message": "预约成功！", "appointment_id": appointment.appointment_id})
         except:
             return JsonResponse({"result": "0", "message": "出错了..."})
 
@@ -1124,11 +1129,11 @@ def generate_vacancy():
 
         for schedule in schedules:
             if schedule.schedule_is_morning:
-                start_time = current_date.replace(hour=8, minute=0, second=0)
-                end_time = current_date.replace(hour=11, minute=0, second=0)
+                start_time = current_date.replace(hour=8, minute=0, second=0, microsecond=0)
+                end_time = current_date.replace(hour=11, minute=0, second=0, microsecond=0)
             else:
-                start_time = current_date.replace(hour=14, minute=0, second=0)
-                end_time = current_date.replace(hour=17, minute=0, second=0)
+                start_time = current_date.replace(hour=14, minute=0, second=0, microsecond=0)
+                end_time = current_date.replace(hour=17, minute=0, second=0, microsecond=0)
 
             current_time = start_time
             while current_time < end_time:
