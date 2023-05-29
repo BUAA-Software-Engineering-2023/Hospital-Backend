@@ -678,6 +678,9 @@ class Pay(View):
         pay = Payment.objects.get(payment_id=payment_id)
         pay.payment_status = '已支付'
         pay.save()
+        appointment = Appointment.objects.get(appointment_id=pay.appointment_id_id)
+        appointment.appointment_status = 0
+        appointment.save()
         return JsonResponse({"result": "1", "message": "支付成功！"})
 
 
