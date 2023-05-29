@@ -554,6 +554,53 @@ class LoginPassWd(View):
                 }
                 return JsonResponse(response, status=401)
 
+class ChangePassword(View):
+    def post(self,request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        phone_number = json_obj['phone_number']
+        old_passwd = json_obj['old_password']
+        new_passwd = json_obj['new_password']
+        m = hashlib.md5()
+        m.update(old_passwd.encode())
+        md5_pwd = m.hexdigest()
+        user = User.objects.filter(phone_number=phone_number).first()
+        if user is None:
+            return JsonResponse({"result":"0","message":"该用户不存在"})
+        else:
+            if md5_pwd == user.passwd:
+                m.update(new_passwd.encode())
+                md5_pwd = m.hexdigest()
+                user.passwd = md5_pwd
+                user.save()
+                return JsonResponse({"result": "1", "message": "修改成功"})
+            else:
+                return JsonResponse({"result":"0","message":"密码错误"})
+
+class ChangePhone(View):
+    def post(self,request):
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        phone_number = json_obj['phone_number']
+        passwd = json_obj['password']
+        new_phone_number = json_obj['new_phone_number']
+        m = hashlib.md5()
+        m.update(passwd.encode())
+        md5_pwd = m.hexdigest()
+        user = User.objects.filter(phone_number=phone_number).first()
+        if user is None:
+            return JsonResponse({"result":"0","message":"该用户不存在"})
+        else:
+            if md5_pwd == user.passwd:
+                user.phone_number = new_phone_number
+                user.save()
+                if user.type == "doctor":
+                    doctor = Doctor.objects.filter(phone_number=phone_number).first()
+                    doctor.phone_number = new_phone_number
+                    doctor.save()
+                return JsonResponse({"result": "1", "message": "修改成功"})
+            else:
+                return JsonResponse({"result":"0","message":"密码错误"})
 
 class LoginCode(View):
     def post(self, request):

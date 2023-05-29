@@ -91,6 +91,7 @@ class Admin(models.Model):
     admin_id = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
+    introduction = models.TextField(max_length=100000)
 
 
 class Payment(models.Model):
