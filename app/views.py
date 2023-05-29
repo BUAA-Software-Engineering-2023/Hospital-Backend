@@ -675,14 +675,14 @@ class PaymentList(View):
 
 class Pay(View):
     def post(self, request, payment_id):
-        pay = Payment.objects.get(pay_id=payment_id)
+        pay = Payment.objects.get(payment_id=payment_id)
         pay.payment_status = '已支付'
         pay.save()
 
 
 class GetPaymentStatus(View):
     def get(self, request, payment_id):
-        pay = Payment.objects.get(pay_id=payment_id)
+        pay = Payment.objects.get(payment_id=payment_id)
         return JsonResponse({"result": "1", "status": pay.payment_status})
 
 
@@ -716,7 +716,8 @@ class MakeAppointment(View):
                 )
                 payment.save()
                 vacancy.save()
-                return JsonResponse({"result": "1", "message": "预约成功！"})
+                return JsonResponse(
+                    {"result": "1", "message": "预约成功！", "appointment_id": appointment.appointment_id})
         except:
             return JsonResponse({"result": "0", "message": "出错了..."})
 
