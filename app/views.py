@@ -625,7 +625,7 @@ class ChangePhone(View):
                     doctor = Doctor.objects.filter(phone_number=phone_number).first()
                     doctor.phone_number = new_phone_number
                     doctor.save()
-                return JsonResponse({"result": "1", "message": "修改成功"})
+                return JsonResponse({"result": "1", "message": "修改成功","token":make_token(new_phone_number)})
             else:
                 return JsonResponse({"result":"0","message":"密码错误"})
 
