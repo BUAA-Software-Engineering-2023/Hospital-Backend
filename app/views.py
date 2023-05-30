@@ -518,15 +518,15 @@ class LoginPassWd(View):
             m = hashlib.md5()
             m.update(passwd.encode())
             md5_pwd = m.hexdigest()
-            data_passwd = User.objects.filter(phone_number=phone_number).first().passwd
-            if data_passwd is None:
+            user = User.objects.filter(phone_number=phone_number).first()
+            if user is None:
                 response = {
                     "result": "0",
-                    "message": "电话号码错误"
+                    "message": "用户不存在"
                 }
                 return JsonResponse(response)
             else:
-                if data_passwd == md5_pwd:
+                if user.data_passwd == md5_pwd:
                     token = make_token(phone_number)
                     response = {
                         "result": "1",
@@ -595,6 +595,7 @@ class ChangePassword(View):
             return JsonResponse({"result":"0","message":"该用户不存在"})
         else:
             if md5_pwd == user.passwd:
+                m = hashlib.md5()
                 m.update(new_passwd.encode())
                 md5_pwd = m.hexdigest()
                 user.passwd = md5_pwd
@@ -636,8 +637,8 @@ class LoginCode(View):
             json_str = request.body
             json_obj = json.loads(json_str)
             phone_number = json_obj['phone_number']
-            if User.objects.get(phone_number=phone_number) is None:
-                return JsonResponse({"result": "0", "message": "用户未注册"})
+            if User.objects.filter(phone_number=phone_number).first() is None:
+                return JsonResponse({"result": "0", "message": "用户不存在"})
             code = json_obj['code']
             data_code = Code.objects.filter(phone_number=phone_number).first()
             if data_code is None:
