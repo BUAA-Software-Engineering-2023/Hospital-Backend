@@ -555,22 +555,24 @@ class LoginPassWd(View):
                 return JsonResponse(response, status=401)
 
 class ChangePassword(View):
+    @method_decorator(logging_check)
     def post(self,request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         json_str = request.body
         json_obj = json.loads(json_str)
-        phone_number = json_obj['phone_number']
-        old_passwd = json_obj['old_password']
+        phone_number = jwt_token['username']
+        vertification_code = json_obj['vertification_code']
         new_passwd = json_obj['new_password']
         m = hashlib.md5()
-        m.update(old_passwd.encode())
+        m.update(new_passwd.encode())
         md5_pwd = m.hexdigest()
         user = User.objects.filter(phone_number=phone_number).first()
+        code = Code.objects.filter(phone_number=phone_number).first()
         if user is None:
             return JsonResponse({"result":"0","message":"该用户不存在"})
         else:
-            if md5_pwd == user.passwd:
-                m.update(new_passwd.encode())
-                md5_pwd = m.hexdigest()
+            if code.verification_code == vertification_code:
                 user.passwd = md5_pwd
                 user.save()
                 return JsonResponse({"result": "1", "message": "修改成功"})
@@ -578,10 +580,13 @@ class ChangePassword(View):
                 return JsonResponse({"result":"0","message":"密码错误"})
 
 class ChangePhone(View):
+    @method_decorator(logging_check)
     def post(self,request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         json_str = request.body
         json_obj = json.loads(json_str)
-        phone_number = json_obj['phone_number']
+        phone_number = jwt_token['username']
         passwd = json_obj['password']
         new_phone_number = json_obj['new_phone_number']
         m = hashlib.md5()
