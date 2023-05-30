@@ -614,7 +614,7 @@ class ChangePhone(View):
         new_phone_number = json_obj['new_phone_number']
         vertification_code = json_obj['vertification_code']
         user = User.objects.filter(phone_number=phone_number).first()
-        code = Code.objects.filter(phone_number=phone_number).first()
+        code = Code.objects.filter(phone_number=new_phone_number).first()
         if user is None:
             return JsonResponse({"result":"0","message":"该用户不存在"})
         else:
