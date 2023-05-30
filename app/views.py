@@ -554,14 +554,11 @@ class LoginPassWd(View):
                 }
                 return JsonResponse(response, status=401)
 
-class ChangePassword(View):
-    @method_decorator(logging_check)
+class BackPassword(View):
     def post(self,request):
-        token = request.META.get('HTTP_AUTHORIZATION')
-        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         json_str = request.body
         json_obj = json.loads(json_str)
-        phone_number = jwt_token['username']
+        phone_number = json_obj['phone_number']
         vertification_code = json_obj['vertification_code']
         new_passwd = json_obj['new_password']
         m = hashlib.md5()
@@ -579,6 +576,33 @@ class ChangePassword(View):
             else:
                 return JsonResponse({"result":"0","message":"密码错误"})
 
+class ChangePassword(View):
+    @method_decorator(logging_check)
+    def post(self,request):
+        token = request.META.get('HTTP_AUTHORIZATION')
+        jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
+        json_str = request.body
+        json_obj = json.loads(json_str)
+        phone_number = jwt_token['username']
+        new_passwd = json_obj['new_password']
+        old_passwd = json_obj['old_password']
+        m = hashlib.md5()
+        m.update(old_passwd.encode())
+        md5_pwd = m.hexdigest()
+        user = User.objects.filter(phone_number=phone_number).first()
+
+        if user is None:
+            return JsonResponse({"result":"0","message":"该用户不存在"})
+        else:
+            if md5_pwd == user.passwd:
+                m.update(new_passwd.encode())
+                md5_pwd = m.hexdigest()
+                user.passwd = md5_pwd
+                user.save()
+                return JsonResponse({"result": "1", "message": "修改成功"})
+            else:
+                return JsonResponse({"result":"0","message":"密码错误"})
+
 class ChangePhone(View):
     @method_decorator(logging_check)
     def post(self,request):
@@ -587,16 +611,14 @@ class ChangePhone(View):
         json_str = request.body
         json_obj = json.loads(json_str)
         phone_number = jwt_token['username']
-        passwd = json_obj['password']
         new_phone_number = json_obj['new_phone_number']
-        m = hashlib.md5()
-        m.update(passwd.encode())
-        md5_pwd = m.hexdigest()
+        vertification_code = json_obj['vertification_code']
         user = User.objects.filter(phone_number=phone_number).first()
+        code = Code.objects.filter(phone_number=phone_number).first()
         if user is None:
             return JsonResponse({"result":"0","message":"该用户不存在"})
         else:
-            if md5_pwd == user.passwd:
+            if code.verification_code == vertification_code:
                 user.phone_number = new_phone_number
                 user.save()
                 if user.type == "doctor":
