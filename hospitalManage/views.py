@@ -77,8 +77,9 @@ class LoginView(View):
                 }
                 return JsonResponse(response, status=401)
 
+
 class ChangeAdminPasswd(View):
-    def post(self,request):
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         user_name = json_obj['user_name']
@@ -95,29 +96,32 @@ class ChangeAdminPasswd(View):
         else:
             return JsonResponse({"result": "0", "message": "该管理员不存在"})
 
+
 class AdminIntroduction(View):
-    def post(self,request):
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         user_name = json_obj['user_name']
         introduction = json_obj['introduction']
+        image = json_obj['image']
         admin = Admin.objects.filter(username=user_name).first()
         if admin is not None:
             admin.introduction = introduction
+            admin.admin_image = image
             admin.save()
             return JsonResponse({"result": "1", "message": "修改成功"})
         else:
             return JsonResponse({"result": "0", "message": "该管理员不存在"})
 
-    def get(self,request):
-        json_str = request.body
-        json_obj = json.loads(json_str)
+    def get(self, request):
         user_name = request.GET.get('user_name')
         admin = Admin.objects.filter(username=user_name).first()
+        data = {"introduction": admin.introduction, "image": admin.admin_image}
         if admin is not None:
-            return JsonResponse({"result": "1","data":admin.introduction})
+            return JsonResponse({"result": "1", "data": data})
         else:
             return JsonResponse({"result": "0", "message": "该管理员不存在"})
+
 
 class NewsManage(View):
     @method_decorator(logging_check)
