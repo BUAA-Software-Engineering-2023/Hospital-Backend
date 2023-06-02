@@ -116,7 +116,7 @@ class AdminIntroduction(View):
     def get(self, request):
         user_name = request.GET.get('user_name')
         admin = Admin.objects.filter(username=user_name).first()
-        data = {"introduction": admin.introduction, "image": request.build_absolute_uri(admin.admin_image.url) if admin.admin_image else None}
+        data = {"introduction": admin.introduction, "image": admin.admin_image.url if admin.admin_image else None}
         if admin is not None:
             return JsonResponse({"result": "1", "data": data})
         else:
