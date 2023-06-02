@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import LoginView, DoctorManagement, ScheduleManage, DepartmentManage, NotificationManage, VacancyManage, \
-    LeaveListManage, ProcessLeave, vacancy_check, DoctorImage, VacancySettingManage, UploadImage, NewsManage,ChangeAdminPasswd,AdminIntroduction
+    LeaveListManage, ProcessLeave, vacancy_check, DoctorImage, VacancySettingManage, UploadImage, NewsManage,\
+    ChangeAdminPasswd,AdminIntroduction
 
 urlpatterns = [
     #
