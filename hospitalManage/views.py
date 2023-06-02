@@ -111,10 +111,8 @@ class AdminIntroduction(View):
         else:
             return JsonResponse({"result": "0", "message": "该管理员不存在"})
 
-    def get(self, request):
-        json_str = request.body
-        json_obj = json.loads(json_str)
-        user_name = json_obj['user_name']
+    def get(self,request):
+        user_name = request.GET.get('user_name')
         admin = Admin.objects.filter(username=user_name).first()
         if admin is not None:
             return JsonResponse({"result": "1", "data": admin.introduction})
