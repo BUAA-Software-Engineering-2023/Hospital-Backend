@@ -16,7 +16,7 @@ class Doctor(models.Model):
     phone_number = models.CharField(max_length=200, blank=False)
     doctor_name = models.CharField(max_length=200, blank=False)
     doctor_gender = models.CharField(max_length=200)
-    doctor_image = models.ImageField(default='', blank=True)
+    doctor_image = models.CharField(max_length=255, blank=True)
     doctor_introduction = models.CharField(max_length=200)
 
 
