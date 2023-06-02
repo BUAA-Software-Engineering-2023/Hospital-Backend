@@ -212,14 +212,14 @@ class NotificationManage(View):
             return JsonResponse({"result": "0", "message": "通知不存在！"})
 
 
-class DoctorImage(View):
-    @method_decorator(logging_check)
-    def post(self, request, doctor_id):
-        doctor_image = request.FILES.get('doctor_image')
-        doctor = Doctor.objects.get(doctor_id=doctor_id)
-        doctor.doctor_image = doctor_image
-        doctor.save()
-        return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
+# class DoctorImage(View):
+#     @method_decorator(logging_check)
+#     def post(self, request, doctor_id):
+#         doctor_image = request.FILES.get('doctor_image')
+#         doctor = Doctor.objects.get(doctor_id=doctor_id)
+#         doctor.doctor_image = doctor_image
+#         doctor.save()
+#         return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
 
 
 class DoctorManagement(View):
@@ -232,6 +232,7 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
+        doctor_image = json_obj.get("doctor_image", "")
         info = Doctor.objects.filter(phone_number=doctor_phone).first()
         if info is None:
             doctor = Doctor.objects.create(
@@ -240,7 +241,7 @@ class DoctorManagement(View):
                 doctor_name=doctor_name,
                 department_id_id=doctor_dp_id,
                 doctor_introduction=doctor_introduction,
-                doctor_image=''
+                doctor_image=doctor_image
             )
             user = User(
                 phone_number=doctor_phone,
@@ -285,6 +286,7 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
+        doctor_image = json_obj['doctor_image']
         info = Doctor.objects.filter(doctor_id=doctor_id).first()
         if info is None:
             response = {
@@ -298,6 +300,7 @@ class DoctorManagement(View):
             info.department_id_id = doctor_dp_id
             info.doctor_phone = doctor_phone
             info.doctor_gender = doctor_gender
+            info.doctor_image = doctor_image
             info.save()
             response = {
                 "result": "1",
