@@ -88,11 +88,11 @@ class Code(models.Model):
 
 
 class Admin(models.Model):
+    admin_image = models.ImageField(default='')
     admin_id = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     introduction = models.TextField(max_length=100000)
-    
 
 
 class Payment(models.Model):
@@ -143,4 +143,3 @@ class Vacancy_setting(models.Model):
     vacancy_cnt = models.IntegerField(default=10)
     vacancy_day = models.IntegerField()
     vacancy_time = models.DecimalField(decimal_places=1, max_digits=3)
-

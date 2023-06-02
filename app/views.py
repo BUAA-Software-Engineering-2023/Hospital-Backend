@@ -554,8 +554,9 @@ class LoginPassWd(View):
                 }
                 return JsonResponse(response, status=401)
 
+
 class BackPassword(View):
-    def post(self,request):
+    def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
         phone_number = json_obj['phone_number']
@@ -567,18 +568,19 @@ class BackPassword(View):
         user = User.objects.filter(phone_number=phone_number).first()
         code = Code.objects.filter(phone_number=phone_number).first()
         if user is None:
-            return JsonResponse({"result":"0","message":"该用户不存在"})
+            return JsonResponse({"result": "0", "message": "该用户不存在"})
         else:
             if code.verification_code == vertification_code:
                 user.passwd = md5_pwd
                 user.save()
                 return JsonResponse({"result": "1", "message": "修改成功"})
             else:
-                return JsonResponse({"result":"0","message":"密码错误"})
+                return JsonResponse({"result": "0", "message": "密码错误"})
+
 
 class ChangePassword(View):
     @method_decorator(logging_check)
-    def post(self,request):
+    def post(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         json_str = request.body
@@ -592,7 +594,7 @@ class ChangePassword(View):
         user = User.objects.filter(phone_number=phone_number).first()
 
         if user is None:
-            return JsonResponse({"result":"0","message":"该用户不存在"})
+            return JsonResponse({"result": "0", "message": "该用户不存在"})
         else:
             if md5_pwd == user.passwd:
                 m = hashlib.md5()
@@ -602,11 +604,12 @@ class ChangePassword(View):
                 user.save()
                 return JsonResponse({"result": "1", "message": "修改成功"})
             else:
-                return JsonResponse({"result":"0","message":"密码错误"})
+                return JsonResponse({"result": "0", "message": "密码错误"})
+
 
 class ChangePhone(View):
     @method_decorator(logging_check)
-    def post(self,request):
+    def post(self, request):
         token = request.META.get('HTTP_AUTHORIZATION')
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         json_str = request.body
@@ -617,7 +620,7 @@ class ChangePhone(View):
         user = User.objects.filter(phone_number=phone_number).first()
         code = Code.objects.filter(phone_number=new_phone_number).first()
         if user is None:
-            return JsonResponse({"result":"0","message":"该用户不存在"})
+            return JsonResponse({"result": "0", "message": "该用户不存在"})
         else:
             if code.verification_code == vertification_code:
                 user.phone_number = new_phone_number
@@ -626,9 +629,10 @@ class ChangePhone(View):
                     doctor = Doctor.objects.filter(phone_number=phone_number).first()
                     doctor.phone_number = new_phone_number
                     doctor.save()
-                return JsonResponse({"result": "1", "message": "修改成功","token":make_token(new_phone_number)})
+                return JsonResponse({"result": "1", "message": "修改成功", "token": make_token(new_phone_number)})
             else:
-                return JsonResponse({"result":"0","message":"密码错误"})
+                return JsonResponse({"result": "0", "message": "密码错误"})
+
 
 class LoginCode(View):
     def post(self, request):
@@ -1238,7 +1242,7 @@ def generate_vacancy():
 def start():
     scheduler = BackgroundScheduler()
     scheduler.add_jobstore(DjangoJobStore(), "default")
-    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0)
+    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True)
 
     scheduler.start()
 
