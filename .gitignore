@@ -1,6 +1,5 @@
 .idea/
 .DS_Store
 __pycache__/
-Hospital_Backend/settings.py
 app/migrations/
 app/management
