@@ -16,7 +16,7 @@ class Doctor(models.Model):
     phone_number = models.CharField(max_length=200, blank=False)
     doctor_name = models.CharField(max_length=200, blank=False)
     doctor_gender = models.CharField(max_length=200)
-    doctor_image = models.ImageField(default='')
+    doctor_image = models.ImageField(default='',blank=True)
     doctor_introduction = models.CharField(max_length=200)
 
 
@@ -77,7 +77,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=200)
     notification_time = models.DateField()
     type = models.IntegerField(default=0)
-    image = models.ImageField()
+    image = models.ImageField(blank=True)
 
 
 class Code(models.Model):
@@ -88,7 +88,7 @@ class Code(models.Model):
 
 
 class Admin(models.Model):
-    admin_image = models.ImageField(default='')
+    admin_image = models.ImageField(default='',blank=True)
     admin_id = models.BigAutoField(primary_key=True)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
@@ -135,7 +135,7 @@ class News(models.Model):
     news_title = models.CharField(max_length=200)
     news_date = models.DateField()
     type = models.IntegerField(default=0)
-    image = models.ImageField()
+    image = models.ImageField(blank=True)
 
 
 class Vacancy_setting(models.Model):
