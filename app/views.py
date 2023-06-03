@@ -338,12 +338,14 @@ class VacancyDetail(View):
                     data.append(info)
             response = {
                 "result": "1",
+                "message":"成功获取放号的具体信息",
                 "data": data
             }
             return JsonResponse(response)
         except:
             return JsonResponse({
-                "result": "0"
+                "result": "0",
+                "message":"出错了"
             })
 
 
@@ -415,6 +417,7 @@ class PatientWaiting(View):
                     appointment_finished.append(info)
             response = {
                 "result": "1",
+                "message":"成功拿到等待患者的信息",
                 "appointment_finished": appointment_finished,
                 "appointment_unfinished": appointment_unfinished
             }
@@ -447,6 +450,7 @@ class LeaveList(View):
                 data.append(info)
             response = {
                 "result": "1",
+                "message":"成功获取请假列表",
                 "data": data
             }
             return JsonResponse(response)
@@ -987,7 +991,7 @@ class GetMedicalRecord(View):
                 "result": medical_record.result
             }
             data.append(result)
-        return JsonResponse({"result": "1", "data": data})
+        return JsonResponse({"result": "1","message":"成功获取病历","data": data})
 
 
 def calculate_age(id_card_number):
