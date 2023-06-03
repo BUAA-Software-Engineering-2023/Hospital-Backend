@@ -673,25 +673,22 @@ class VacancySettingManage(View):
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
-            if start_time == 11:
-                break
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
+            tmp = tmp + 1
 
         for start_time in range(14, 17):
-            tmp = tmp + 1
             vacancy_time = Decimal(str(start_time))
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
-            if start_time == 17:
-                break
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
+            tmp = tmp + 1
         return JsonResponse({"result": "1", "message": "修改放号成功！"})
