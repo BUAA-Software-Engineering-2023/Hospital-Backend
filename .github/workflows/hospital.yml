@@ -36,6 +36,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             sudo mkdir -p ~/django/media
+            sudo chmod 777 ~/django/media
             sudo docker rm hospital_backend -f
             sudo docker rmi ${{ secrets.DOCKER_REPOSITORY }}
             sudo docker pull ${{ secrets.DOCKER_REPOSITORY }}
