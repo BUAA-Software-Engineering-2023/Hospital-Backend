@@ -668,7 +668,7 @@ class VacancySettingManage(View):
         vacancy_counts = json_obj['vacancy_counts']
         vacancy_day = json_obj['vacancy_day']
         tmp = 0
-        for start_time in range(8, 12):
+        for start_time in range(8, 11):
             vacancy_time = Decimal(str(start_time))
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
@@ -681,7 +681,7 @@ class VacancySettingManage(View):
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
 
-        for start_time in range(14, 18):
+        for start_time in range(14, 17):
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time))
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
