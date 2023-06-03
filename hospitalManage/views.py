@@ -298,7 +298,7 @@ class DoctorManagement(View):
             info.doctor_name = doctor_name
             info.doctor_introduction = doctor_introduction
             info.department_id_id = doctor_dp_id
-            info.doctor_phone = doctor_phone
+            info.phone_number = doctor_phone
             info.doctor_gender = doctor_gender
             info.doctor_image = doctor_image
             info.save()
@@ -521,6 +521,25 @@ class LeaveListManage(View):
                 "end_time": leave.end_time.strftime("%Y-%m-%d %H:%M"),
                 "type": leave.type,
                 "reason": leave.reseon
+            })
+        return JsonResponse({"result": "1", "data": data})
+
+
+class ProcessedLeave(View):
+    # @method_decorator(logging_check)
+    def get(self, request):
+        leaves = Leave.objects.filter(Q(leave_status="approved") | Q(leave_status="denied"))
+        data = []
+        for leave in leaves:
+            doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
+            data.append({
+                "leave_id": leave.leave_id,
+                "doctor_name": doctor_name,
+                "start_time": leave.start_time.strftime("%Y-%m-%d %H:%M"),
+                "end_time": leave.end_time.strftime("%Y-%m-%d %H:%M"),
+                "type": leave.type,
+                "reason": leave.reseon,
+                "status": leave.leave_status
             })
         return JsonResponse({"result": "1", "data": data})
 
