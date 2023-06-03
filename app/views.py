@@ -68,7 +68,7 @@ class DoctorList(View):
                 'id': doctor.doctor_id,
                 'name': doctor.doctor_name,
                 'department': doctor.department_id.department_name,
-                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
+                'image': doctor.doctor_image if doctor.doctor_image else None,
                 'introduction': doctor.doctor_introduction,
                 "phone_number": doctor.phone_number,
                 "gender": doctor.doctor_gender
@@ -205,7 +205,7 @@ class DoctorDetail(View):
                 "id": doctor.doctor_id,
                 "name": doctor.doctor_name,
                 "department": doctor.department_id.department_name,
-                'image': request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
+                'image': doctor.doctor_image if doctor.doctor_image else None,
                 "introduction": doctor.doctor_introduction,
                 "available": available
             }
@@ -283,7 +283,7 @@ class VacancyList(View):
                 "id": doctor_id,
                 "name": doctor_info.doctor_name,
                 "department": Department.objects.get(department_id=departmentId).department_name,
-                "image": request.build_absolute_uri(doctor_info.doctor_image.url) if doctor_info.doctor_image else None,
+                "image": doctor_info.doctor_image if doctor_info.doctor_image else None,
                 "introduction": doctor_info.doctor_introduction,
                 "available": available
             })
