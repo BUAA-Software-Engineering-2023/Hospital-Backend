@@ -35,6 +35,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            sudo mkdir -p ~/django/media
+            sudo chmod 777 ~/django/media
             sudo docker rm hospital_backend -f
             sudo docker rmi ${{ secrets.DOCKER_REPOSITORY }}
             sudo docker pull ${{ secrets.DOCKER_REPOSITORY }}
@@ -43,4 +45,6 @@ jobs:
             -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
             -e DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
             -e DATABASE_PORT=${{ secrets.DATABASE_PORT }} \
-            --name hospital_backend ${{ secrets.DOCKER_REPOSITORY }}
+            --name hospital_backend --restart=unless-stopped \
+            -v ~/django/media:/project/app/media \
+            ${{ secrets.DOCKER_REPOSITORY }}
