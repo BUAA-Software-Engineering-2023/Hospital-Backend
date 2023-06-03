@@ -1,0 +1,46 @@
+name: deployment
+# 触发条件
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+  workflow_dispatch: # 允许手动运行，便于调试
+# 任务
+jobs:
+  deploy:
+    # 运行的环境
+    runs-on: ubuntu-latest
+    # 限制主仓库运行
+    if: github.repository == 'BUAA-Software-Engineering-2023/Hospital-Backend'
+    # 步骤
+    steps:
+      - uses: actions/checkout@v2 # git pull
+      - name: 打包镜像, 上传 Docker Hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t hospital .
+          docker tag hospital ${{ secrets.DOCKER_REPOSITORY }}
+          docker push ${{ secrets.DOCKER_REPOSITORY }}
+
+      - name: 登录服务器, 执行脚本
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            sudo docker rm hospital_backend -f
+            sudo docker rmi ${{ secrets.DOCKER_REPOSITORY }}
+            sudo docker pull ${{ secrets.DOCKER_REPOSITORY }}
+            sudo docker run -d -p 5555:8000 \
+            -e DATABASE_USER=${{ secrets.DATABASE_USER }} \
+            -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+            -e DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
+            -e DATABASE_PORT=${{ secrets.DATABASE_PORT }} \
+            --name hospital_backend ${{ secrets.DOCKER_REPOSITORY }}
