@@ -47,6 +47,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -78,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital',
         'USER': os.environ.get("DATABASE_USER", "root"),
-        'PASSWORD': os.environ.get("DATABASE_PASSWORD", "123456"),
+        'PASSWORD': os.environ.get("DATABASE_PASSWORD", "root"),
         'HOST': os.environ.get("DATABASE_HOST", "localhost"),
         'PORT': os.environ.get("DATABASE_PORT", "3306")
     }
@@ -128,6 +130,10 @@ MEDIA_URL = '/media/'
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = (
+    '*'
+)
 CORS_ALLOW_HEADERS = ('*')
 CORS_ALLOW_METHODS = [
     '*'
