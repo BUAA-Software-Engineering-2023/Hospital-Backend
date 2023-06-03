@@ -4,3 +4,5 @@ PyJWT==2.7.0
 PyMySQL==1.0.3
 Pillow==9.5.0
 uwsgi==2.0.21
+cryptography
+django-cors-headers==4.0.0
