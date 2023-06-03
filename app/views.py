@@ -526,7 +526,7 @@ class LoginPassWd(View):
                 }
                 return JsonResponse(response)
             else:
-                if user.data_passwd == md5_pwd:
+                if user.passwd == md5_pwd:
                     token = make_token(phone_number)
                     response = {
                         "result": "1",
