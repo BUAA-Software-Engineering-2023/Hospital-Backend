@@ -1,6 +1,4 @@
 from django.db import models
-import random
-from faker import Faker
 
 
 class Department(models.Model):
