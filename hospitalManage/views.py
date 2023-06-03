@@ -509,8 +509,8 @@ class VacancyManage(View):
 class LeaveListManage(View):
     @method_decorator(logging_check)
     def get(self, request):
-        leaves = Leave.objects.exclude(leave_status='approved')
-        leaves = leaves.exclude(leave_status='denied')
+        leaves = Leave.objects.exclude(leave_status='已批准')
+        leaves = leaves.exclude(leave_status='已拒绝')
         data = []
         for leave in leaves:
             doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
@@ -528,7 +528,7 @@ class LeaveListManage(View):
 class ProcessedLeave(View):
     @method_decorator(logging_check)
     def get(self, request):
-        leaves = Leave.objects.filter(Q(leave_status="approved") | Q(leave_status="denied"))
+        leaves = Leave.objects.filter(Q(leave_status="已批准") | Q(leave_status="已拒绝"))
         data = []
         for leave in leaves:
             doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
@@ -552,9 +552,9 @@ class ProcessLeave(View):
         leave_id = json_obj['leave_id']
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
-        leave.leave_status = leave_status
         try:
             if leave_status == "approved":
+                leave.leave_status = "已批准"
                 schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
                 for schedule in schedules:
                     if (leave.start_time.weekday() + 1) > schedule.schedule_day or schedule.schedule_day > (
@@ -601,6 +601,7 @@ class ProcessLeave(View):
                 leave.save()
                 return JsonResponse({"result": "1", "message": "请假批准成功！"})
             else:
+                leave.leave_status = "已拒绝"
                 phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
                 user = User.objects.filter(phone_number=phone_number).first()
                 message = Message(
