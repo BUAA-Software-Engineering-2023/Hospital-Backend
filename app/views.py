@@ -623,6 +623,8 @@ class ChangePhone(View):
         vertification_code = json_obj['vertification_code']
         user = User.objects.filter(phone_number=phone_number).first()
         code = Code.objects.filter(phone_number=new_phone_number).first()
+        if code is None:
+            return JsonResponse({"result": "0", "message": "未发送验证码"})
         if user is None:
             return JsonResponse({"result": "0", "message": "该用户不存在"})
         else:
@@ -635,7 +637,7 @@ class ChangePhone(View):
                     doctor.save()
                 return JsonResponse({"result": "1", "message": "修改成功", "token": make_token(new_phone_number)})
             else:
-                return JsonResponse({"result": "0", "message": "密码错误"})
+                return JsonResponse({"result": "0", "message": "验证码错误"})
 
 
 class LoginCode(View):
