@@ -16,7 +16,8 @@ def logging_check(func):
                     "reason": "token error"
                 }
                 return JsonResponse(response, status=401)
-
+        else:
+            return JsonResponse({"result":"0","message":"用户未登录"})
         return func(request, *args, **kwargs)
 
     return wrap

@@ -818,6 +818,9 @@ class CancelAppointment(View):
         json_str = request.body
         json_obj = json.loads(json_str)
         appointment_id = json_obj['appointment_id']
+        appointment = Appointment.objects.filter(appointment_id=appointment_id).first()
+        if appointment is None:
+            return JsonResponse({"result": "0", "message": "该预约不存在！"})
         doctor_id = Appointment.objects.get(appointment_id=appointment_id).doctor_id_id
         start_time = Appointment.objects.get(appointment_id=appointment_id).appointment_time
         vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
