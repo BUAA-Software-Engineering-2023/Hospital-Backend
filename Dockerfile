@@ -11,6 +11,7 @@ ADD . /project/app
 
  # 利用 pip 安装依赖
 RUN pip install -r requirements.txt
+RUN chmod 777 /project/app/media
 
 ENV DATABASE_USER=root
 ENV DATABASE_PASSWORD=123456
