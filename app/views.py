@@ -6,6 +6,7 @@ import string
 import time
 from _decimal import Decimal
 from datetime import datetime, timedelta
+import re
 
 import django.db
 from django.db.models import Q
@@ -490,7 +491,9 @@ class SendCode(View):
     def get(self, request, phone_number):
         verification_code = generate_verification_code()
         date_time = datetime.now()
-
+        if is_illegal_phoneNumber(phone_number):
+            return JsonResponse(
+                {"result": "0", 'message': '手机号码不合法'})
         info = Code.objects.filter(phone_number=phone_number).first()
         if info is None:
             pass
@@ -530,6 +533,7 @@ class LoginPassWd(View):
                     token = make_token(phone_number)
                     response = {
                         "result": "1",
+                        "message":"登录成功",
                         "data": {"token": token}
                     }
                     return JsonResponse(response)
@@ -1238,6 +1242,14 @@ def generate_vacancy():
                     vacancy.save()
                 current_time += timedelta(minutes=30)
 
+def is_illegal_phoneNumber(phone):
+    pattern = re.compile(r'^(13[0-9]|14[0|5|6|7|9]|15[0|1|2|3|5|6|7|8|9]|'
+                         r'16[2|5|6|7]|17[0|1|2|3|5|6|7|8]|18[0-9]|'
+                         r'19[1|3|5|6|7|8|9])\d{8}$')
+    if pattern.search(phone):
+        return False
+    else:
+        return True
 
 def start():
     scheduler = BackgroundScheduler()
@@ -1245,6 +1257,7 @@ def start():
     scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True)
 
     scheduler.start()
+
 
 
 try:
