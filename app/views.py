@@ -537,7 +537,7 @@ class LoginPassWd(View):
                     token = make_token(phone_number)
                     response = {
                         "result": "1",
-                        "message":"登录成功",
+                        "message": "登录成功",
                         "data": {"token": token}
                     }
                     return JsonResponse(response)
@@ -1251,6 +1251,7 @@ def generate_vacancy():
                     vacancy.save()
                 current_time += timedelta(minutes=30)
 
+
 def is_illegal_phoneNumber(phone):
     pattern = re.compile(r'^(13[0-9]|14[0|5|6|7|9]|15[0|1|2|3|5|6|7|8|9]|'
                          r'16[2|5|6|7]|17[0|1|2|3|5|6|7|8]|18[0-9]|'
@@ -1260,13 +1261,13 @@ def is_illegal_phoneNumber(phone):
     else:
         return True
 
+
 def start():
     scheduler = BackgroundScheduler()
     scheduler.add_jobstore(DjangoJobStore(), "default")
     scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True)
 
     scheduler.start()
-
 
 
 try:
