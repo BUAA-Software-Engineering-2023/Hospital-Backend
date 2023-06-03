@@ -212,14 +212,14 @@ class NotificationManage(View):
             return JsonResponse({"result": "0", "message": "通知不存在！"})
 
 
-class DoctorImage(View):
-    @method_decorator(logging_check)
-    def post(self, request, doctor_id):
-        doctor_image = request.FILES.get('doctor_image')
-        doctor = Doctor.objects.get(doctor_id=doctor_id)
-        doctor.doctor_image = doctor_image
-        doctor.save()
-        return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
+# class DoctorImage(View):
+#     @method_decorator(logging_check)
+#     def post(self, request, doctor_id):
+#         doctor_image = request.FILES.get('doctor_image')
+#         doctor = Doctor.objects.get(doctor_id=doctor_id)
+#         doctor.doctor_image = doctor_image
+#         doctor.save()
+#         return JsonResponse({'result': "1", 'message': '医生头像上传成功！'})
 
 
 class DoctorManagement(View):
@@ -232,6 +232,7 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
+        doctor_image = json_obj.get("doctor_image", "")
         info = Doctor.objects.filter(phone_number=doctor_phone).first()
         if info is None:
             doctor = Doctor.objects.create(
@@ -240,7 +241,7 @@ class DoctorManagement(View):
                 doctor_name=doctor_name,
                 department_id_id=doctor_dp_id,
                 doctor_introduction=doctor_introduction,
-                doctor_image=''
+                doctor_image=doctor_image
             )
             user = User(
                 phone_number=doctor_phone,
@@ -285,6 +286,7 @@ class DoctorManagement(View):
         doctor_dp_id = json_obj['doctor_dp_id']
         doctor_phone = json_obj['doctor_phone']
         doctor_gender = json_obj['doctor_gender']
+        doctor_image = json_obj['doctor_image']
         info = Doctor.objects.filter(doctor_id=doctor_id).first()
         if info is None:
             response = {
@@ -296,8 +298,9 @@ class DoctorManagement(View):
             info.doctor_name = doctor_name
             info.doctor_introduction = doctor_introduction
             info.department_id_id = doctor_dp_id
-            info.doctor_phone = doctor_phone
+            info.phone_number = doctor_phone
             info.doctor_gender = doctor_gender
+            info.doctor_image = doctor_image
             info.save()
             response = {
                 "result": "1",
@@ -331,7 +334,7 @@ class ScheduleManage(View):
                     "name": doctor.doctor_name,
                     "department": Department.objects.get(department_id=doctor.department_id_id).department_name,
                     "day": day,
-                    "image": request.build_absolute_uri(doctor.doctor_image.url) if doctor.doctor_image else None,
+                    "image": doctor.doctor_image if doctor.doctor_image else None,
                 }
                 data.append(info)
             response = {
@@ -522,6 +525,25 @@ class LeaveListManage(View):
         return JsonResponse({"result": "1", "data": data})
 
 
+class ProcessedLeave(View):
+    @method_decorator(logging_check)
+    def get(self, request):
+        leaves = Leave.objects.filter(Q(leave_status="approved") | Q(leave_status="denied"))
+        data = []
+        for leave in leaves:
+            doctor_name = Doctor.objects.get(doctor_id=leave.doctor_id_id).doctor_name
+            data.append({
+                "leave_id": leave.leave_id,
+                "doctor_name": doctor_name,
+                "start_time": leave.start_time.strftime("%Y-%m-%d %H:%M"),
+                "end_time": leave.end_time.strftime("%Y-%m-%d %H:%M"),
+                "type": leave.type,
+                "reason": leave.reseon,
+                "status": leave.leave_status
+            })
+        return JsonResponse({"result": "1", "data": data})
+
+
 class ProcessLeave(View):
     @method_decorator(logging_check)
     def post(self, request, leave_status):
@@ -531,7 +553,6 @@ class ProcessLeave(View):
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
-        leave.save()
         try:
             if leave_status == "approved":
                 schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
@@ -577,6 +598,7 @@ class ProcessLeave(View):
                                     appointment.appointment_status = 3
                                     appointment.save()
                                 Vacancy.delete(vacancy)
+                leave.save()
                 return JsonResponse({"result": "1", "message": "请假批准成功！"})
             else:
                 phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
@@ -589,6 +611,7 @@ class ProcessLeave(View):
                     user_id_id=user.user_id
                 )
                 message.save()
+                leave.save()
                 return JsonResponse({"result": "1", "message": "不批准请假成功！"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
@@ -646,30 +669,27 @@ class VacancySettingManage(View):
         vacancy_counts = json_obj['vacancy_counts']
         vacancy_day = json_obj['vacancy_day']
         tmp = 0
-        for start_time in range(8, 12):
+        for start_time in range(8, 11):
             vacancy_time = Decimal(str(start_time))
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
-            if start_time == 11:
-                break
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
+            tmp = tmp + 1
 
-        for start_time in range(14, 18):
-            tmp = tmp + 1
+        for start_time in range(14, 17):
             vacancy_time = Decimal(str(start_time))
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
-            if start_time == 17:
-                break
             tmp = tmp + 1
             vacancy_time = Decimal(str(start_time)) + Decimal('0.5')
             vacancy_setting = Vacancy_setting.objects.filter(vacancy_time=vacancy_time, vacancy_day=vacancy_day).first()
             vacancy_setting.vacancy_cnt = vacancy_counts[tmp]
             vacancy_setting.save()
+            tmp = tmp + 1
         return JsonResponse({"result": "1", "message": "修改放号成功！"})
