@@ -338,12 +338,14 @@ class VacancyDetail(View):
                     data.append(info)
             response = {
                 "result": "1",
+                "message":"成功获取放号的具体信息",
                 "data": data
             }
             return JsonResponse(response)
         except:
             return JsonResponse({
-                "result": "0"
+                "result": "0",
+                "message":"出错了"
             })
 
 
@@ -415,6 +417,7 @@ class PatientWaiting(View):
                     appointment_finished.append(info)
             response = {
                 "result": "1",
+                "message":"成功拿到等待患者的信息",
                 "appointment_finished": appointment_finished,
                 "appointment_unfinished": appointment_unfinished
             }
@@ -447,6 +450,7 @@ class LeaveList(View):
                 data.append(info)
             response = {
                 "result": "1",
+                "message":"成功获取请假列表",
                 "data": data
             }
             return JsonResponse(response)
@@ -623,6 +627,8 @@ class ChangePhone(View):
         vertification_code = json_obj['vertification_code']
         user = User.objects.filter(phone_number=phone_number).first()
         code = Code.objects.filter(phone_number=new_phone_number).first()
+        if code is None:
+            return JsonResponse({"result": "0", "message": "未发送验证码"})
         if user is None:
             return JsonResponse({"result": "0", "message": "该用户不存在"})
         else:
@@ -635,7 +641,7 @@ class ChangePhone(View):
                     doctor.save()
                 return JsonResponse({"result": "1", "message": "修改成功", "token": make_token(new_phone_number)})
             else:
-                return JsonResponse({"result": "0", "message": "密码错误"})
+                return JsonResponse({"result": "0", "message": "验证码错误"})
 
 
 class LoginCode(View):
@@ -816,6 +822,9 @@ class CancelAppointment(View):
         json_str = request.body
         json_obj = json.loads(json_str)
         appointment_id = json_obj['appointment_id']
+        appointment = Appointment.objects.filter(appointment_id=appointment_id).first()
+        if appointment is None:
+            return JsonResponse({"result": "0", "message": "该预约不存在！"})
         doctor_id = Appointment.objects.get(appointment_id=appointment_id).doctor_id_id
         start_time = Appointment.objects.get(appointment_id=appointment_id).appointment_time
         vacancy = Vacancy.objects.filter(doctor_id_id=doctor_id, start_time=start_time).first()
@@ -982,7 +991,7 @@ class GetMedicalRecord(View):
                 "result": medical_record.result
             }
             data.append(result)
-        return JsonResponse({"result": "1", "data": data})
+        return JsonResponse({"result": "1","message":"成功获取病历","data": data})
 
 
 def calculate_age(id_card_number):
