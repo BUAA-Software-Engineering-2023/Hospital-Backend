@@ -526,7 +526,7 @@ class LeaveListManage(View):
 
 
 class ProcessedLeave(View):
-    # @method_decorator(logging_check)
+    @method_decorator(logging_check)
     def get(self, request):
         leaves = Leave.objects.filter(Q(leave_status="approved") | Q(leave_status="denied"))
         data = []
@@ -553,7 +553,6 @@ class ProcessLeave(View):
         leave = Leave.objects.get(leave_id=leave_id)
         doctor_id = leave.doctor_id_id
         leave.leave_status = leave_status
-        leave.save()
         try:
             if leave_status == "approved":
                 schedules = Schedule.objects.filter(doctor_id_id=leave.doctor_id_id)
@@ -599,6 +598,7 @@ class ProcessLeave(View):
                                     appointment.appointment_status = 3
                                     appointment.save()
                                 Vacancy.delete(vacancy)
+                leave.save()
                 return JsonResponse({"result": "1", "message": "请假批准成功！"})
             else:
                 phone_number = Doctor.objects.get(doctor_id=doctor_id).phone_number
@@ -611,6 +611,7 @@ class ProcessLeave(View):
                     user_id_id=user.user_id
                 )
                 message.save()
+                leave.save()
                 return JsonResponse({"result": "1", "message": "不批准请假成功！"})
         except:
             return JsonResponse({"result": "0", "message": "出错啦！"})
