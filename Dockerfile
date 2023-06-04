@@ -27,4 +27,4 @@ ENV DATABASE_PORT=3306
 
 EXPOSE 8000
 
-CMD python manage.py makemigrations && python manage.py migrate && uwsgi --ini /project/app/uwsgi.ini && systemctl start nginx
+CMD python manage.py makemigrations && python manage.py migrate && uwsgi --ini /project/app/uwsgi.ini && service nginx start
