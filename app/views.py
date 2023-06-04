@@ -125,10 +125,9 @@ class NotificationDetail(View):
     def get(self, request, notification_id):
         try:
             notification = Notification.objects.get(notification_id=notification_id)
-
             notification_data = {
                 "id": notification.notification_id,
-                "image": notification.image.url if notification.image else '',
+                "image": notification.image if notification.image else '',
                 'title': notification.title,
                 'date': notification.notification_time,
                 "content": notification.content
