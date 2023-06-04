@@ -17,7 +17,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends nginx && \
     rm -rf /var/lib/apt/lists/* && \
     rm /etc/nginx/nginx.conf
-
+RUN useradd nginx -G www-data
 COPY nginx.conf /etc/nginx/nginx.conf
 
 ENV DATABASE_USER=root
