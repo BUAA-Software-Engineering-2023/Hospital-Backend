@@ -86,7 +86,7 @@ class DoctorList(View):
 
 class NotificationList(View):
     def post(self, request):
-        notifications = Notification.objects.all().order_by("-notification_time", "notification_id")
+        notifications = Notification.objects.all().order_by("-notification_time", "-notification_id")
         total = len(notifications)
         offset = 1
         count = 10
