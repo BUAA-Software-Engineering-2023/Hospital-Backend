@@ -273,9 +273,9 @@ class DoctorManagement(View):
                         doctor = Doctor.objects.get(doctor_id=doctor_id)
                         phone = doctor.phone_number
                         user = User.objects.get(phone_number=phone)
-                        user.type = 'user'
-                        user.save()
+                        user.delete()
                         doctor.delete()
+                        vacancy_check()
                     except Doctor.DoesNotExist:
                         return JsonResponse({"result": "0", "message": f"医生ID {doctor_id} 不存在！"})
         except:
