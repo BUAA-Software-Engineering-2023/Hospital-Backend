@@ -98,6 +98,7 @@ class ChangeAdminPasswd(View):
 
 
 class AdminIntroduction(View):
+    @method_decorator(logging_check)
     def post(self, request):
         json_str = request.body
         json_obj = json.loads(json_str)
@@ -270,6 +271,10 @@ class DoctorManagement(View):
                 for doctor_id in doctor_ids:
                     try:
                         doctor = Doctor.objects.get(doctor_id=doctor_id)
+                        phone = doctor.phone_number
+                        user = User.objects.get(phone_number=phone)
+                        user.type = 'user'
+                        user.save()
                         doctor.delete()
                     except Doctor.DoesNotExist:
                         return JsonResponse({"result": "0", "message": f"医生ID {doctor_id} 不存在！"})
