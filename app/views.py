@@ -253,7 +253,6 @@ class CarouselMapList(View):
 
 
 class VacancyList(View):
-    @method_decorator(logging_check)
     def get(self, request):
         data = []
         departmentId = request.GET.get('department')
@@ -262,6 +261,8 @@ class VacancyList(View):
         for doctor_id in doctor_id_list:
             doctor_id = doctor_id['doctor_id']
             doctor_info = Doctor.objects.get(doctor_id=doctor_id)
+            if doctor_info.department_id != departmentId:
+                continue
             vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id).values('vacancy_count',
                                                                                                       'start_time')
             available = []
@@ -1016,9 +1017,9 @@ def calculate_age(id_card_number):
 def get_gender(id_card_number):
     gender_code = int(id_card_number[-2])
     if gender_code % 2 == 0:
-        return "女性"
+        return "女"
     else:
-        return "男性"
+        return "男"
 
 
 class AddPatient(View):
