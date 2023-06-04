@@ -261,7 +261,9 @@ class VacancyList(View):
         for doctor_id in doctor_id_list:
             doctor_id = doctor_id['doctor_id']
             doctor_info = Doctor.objects.get(doctor_id=doctor_id)
-            if doctor_info.department_id != departmentId:
+            print(doctor_info.department_id_id)
+            print(departmentId)
+            if int(doctor_info.department_id_id) != int(departmentId):
                 continue
             vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id).values('vacancy_count',
                                                                                                       'start_time')
