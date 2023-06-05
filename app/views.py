@@ -247,7 +247,7 @@ class CarouselMapList(View):
                 "img": news.image if news.image else None,
                 "time": news.news_date.strftime("%Y-%m-%d"),
                 "title": news.news_title,
-                "content": news.content
+                "content": news.news_content
             })
         response = {
             'result': "1",
