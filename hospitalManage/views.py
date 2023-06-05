@@ -152,15 +152,12 @@ class NewsManage(View):
     def delete(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
-        news_id = json_obj.get('news_id')
-
-        # Check if the news exists and delete it
-        news = News.objects.filter(news_id=news_id).first()
-        if news:
-            news.delete()
-            return JsonResponse({"result": "1", "message": "新闻删除成功！"})
-        else:
-            return JsonResponse({"result": "0", "message": "新闻不存在！"})
+        news_ids = json_obj.get('news_id')
+        for news_id in news_ids:
+            news = News.objects.filter(news_id=news_id).first()
+            if news:
+                news.delete()
+        return JsonResponse({"result": "1", "message": "新闻删除成功！"})
 
 
 class UploadImage(View):
@@ -191,11 +188,13 @@ class NotificationManage(View):
         notification_title = json_obj['notification_title']
         notification_time = datetime.now().date()
         notification_type = json_obj['notification_type']
+        notification_shortinfo = json_obj['notification_shortinfo']
         notification = Notification(
             type=notification_type,
             notification_time=notification_time,
             title=notification_title,
             content=notification_content,
+            short_info=notification_shortinfo,
             image=notification_image
         )
         notification.save()
@@ -204,13 +203,12 @@ class NotificationManage(View):
     def delete(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
-        notification_id = json_obj['notification_id']
-        notification = Notification.objects.filter(notification_id=notification_id).first()
-        if notification:
-            notification.delete()
-            return JsonResponse({"result": "1", "message": "通知删除成功！"})
-        else:
-            return JsonResponse({"result": "0", "message": "通知不存在！"})
+        notification_ids = json_obj['notification_id']
+        for notification_id in notification_ids:
+            notification = Notification.objects.filter(notification_id=notification_id).first()
+            if notification:
+                notification.delete()
+        return JsonResponse({"result": "1", "message": "通知删除成功！"})
 
 
 # class DoctorImage(View):
@@ -360,10 +358,13 @@ class ScheduleManage(View):
         is_mornings = json_obj['is_mornings']
         dates = json_obj['dates']
         schedules = Schedule.objects.filter(doctor_id_id=doctor_id)
-        for schedule in schedules:
-            schedule.delete()
+
         try:
             with transaction.atomic():
+
+                for schedule in schedules:
+                    schedule.delete()
+
                 for i in range(len(is_mornings)):
                     date = dates[i]
                     is_morning = is_mornings[i]
@@ -376,6 +377,8 @@ class ScheduleManage(View):
                             doctor_id_id=doctor_id
                         )
                         schedule.save()
+
+                vacancy_make()
                 vacancy_check()
         except:
             return JsonResponse({"result": "0", "message": "排班设置失败！"})
@@ -390,17 +393,6 @@ class ScheduleManage(View):
             with transaction.atomic():
                 for schedule_id in schedule_ids:
                     schedule = Schedule.objects.get(schedule_id=schedule_id)
-                    doctor_id = schedule.doctor_id
-                    is_morning = schedule.schedule_is_morning
-                    date = schedule.schedule_day
-                    vacancies = Vacancy.objects.filter(start_time__contains=date, doctor_id=doctor_id)
-                    for vacancy in vacancies:
-                        start_time = vacancy.start_time
-                        if is_morning * 12 < start_time.hour < is_morning * 12 + 12:
-                            appointments = Appointment.objects.filter(doctor_id=doctor_id, appointment_time=start_time)
-                            for appointment in appointments:
-                                Appointment.delete(appointment)
-                            Vacancy.delete(vacancy)
                     Schedule.delete(schedule)
                 vacancy_check()
         except:
@@ -658,6 +650,65 @@ def vacancy_check():
             vacancy.delete()
     return JsonResponse({"result": "1"})
 
+def vacancy_make():
+    schedules = Schedule.objects.all()
+    leaves = Leave.objects.filter(leave_status="已批准")
+    for schedule in schedules:
+        today = datetime.today()
+        current_day = today.weekday() + 1
+        days_ahead = schedule.schedule_day - current_day
+        if days_ahead < 0 :
+            days_ahead = -1 * days_ahead
+        start_date = today + timedelta(days=days_ahead)
+
+        if schedule.schedule_is_morning:
+            start_time = start_date.replace(hour=8, minute=0, second=0, microsecond=0)
+            end_time = start_date.replace(hour=11, minute=0, second=0, microsecond=0)
+        else:
+            start_time = start_date.replace(hour=14, minute=0, second=0, microsecond=0)
+            end_time = start_date.replace(hour=17, minute=0, second=0, microsecond=0)
+
+        current_time = start_time
+
+        while current_time < end_time:
+            # 创建相应的Vacancy对象
+            vacancy_day = current_time.weekday() + 1
+            minutes = 0 if current_time.minute == 0 else 0.5
+            vacancy_time = current_time.hour + minutes
+            vacancy_setting = Vacancy_setting.objects.filter(vacancy_day=vacancy_day, vacancy_time=vacancy_time). \
+                first()
+            if vacancy_setting:
+                judge = False
+                vacancies = Vacancy.objects.filter(doctor_id=schedule.doctor_id,start_time=current_time)
+                for vacancy in vacancies:
+                    vacancy.delete()
+
+                for leave in leaves:
+                    st = leave.start_time
+                    et = leave.end_time
+                    id = leave.doctor_id_id
+                    if end_time >= st and end_time <=et and int(schedule.doctor_id_id) == int(id):
+                        judge = True
+                        break
+                    if start_time >= st and start_time <= et and int(schedule.doctor_id_id) == int(id):
+                        judge = True
+                        break
+                    if start_time <=st and end_time >= et and int(schedule.doctor_id_id) == int(id):
+                        judge = True
+                        break
+
+                if judge is True:
+                    current_time += timedelta(minutes=30)
+                    continue
+                vacancy = Vacancy(
+                    doctor_id=schedule.doctor_id,
+                    start_time=current_time,
+                    end_time=current_time + timedelta(minutes=30),
+                    vacancy_left=vacancy_setting.vacancy_cnt,
+                    vacancy_count=vacancy_setting.vacancy_cnt
+                )
+                vacancy.save()
+            current_time += timedelta(minutes=30)
 
 class VacancySettingManage(View):
     @method_decorator(logging_check)
