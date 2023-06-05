@@ -12,7 +12,7 @@ def logging_check(func):
                 jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
                 user = User.objects.filter(phone_number=jwt_token['username'])
                 if user is None:
-                    return JsonResponse({"result": "0", "message": "用户不存在"})
+                    return JsonResponse({"result": "0", "message": "用户不存在",},status=401)
             except:
                 response = {
                     "result": "0",
