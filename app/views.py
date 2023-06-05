@@ -797,14 +797,16 @@ class MakeAppointment(View):
         try:
             if vacancy.vacancy_left > 0:
                 vacancy.vacancy_left = vacancy.vacancy_left - 1
+
                 appointment = Appointment(
-                    appointment_time=datetime.strptime(start_time, "%Y-%m-%d %H:%M"),
+                    appointment_time=datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S"),
                     appointment_status=4,
                     doctor_id_id=doctor_id,
                     patient_id_id=patient_id
                 )
                 patient = Patient.objects.get(patient_id=patient_id)
                 users = patient.user_id.all()
+
                 doctor = Doctor.objects.get(doctor_id=doctor_id)
                 department = Department.objects.get(department_id=doctor.department_id_id)
                 appointment.save()
@@ -814,19 +816,19 @@ class MakeAppointment(View):
                     message = Message(
                         title="您的预约成功",
                         content=f"""尊敬的{patient.patient_name}患者，
-感谢您选择我们医院进行就诊。您的预约已成功确认。以下是预约的详细信息：
-预约时间：{appointment.appointment_time.strftime("%Y年%m月%d日 %H:%M")}
-医生姓名：{doctor.doctor_name}
-科室：{department.department_name}
-医院地址：北京市海淀区知春路29号
-请您务必按照预约时间准时前来就诊。如果您有任何紧急情况或无法按时赴约，请提前联系我们的预约部门进行调整。
-我们提醒您带齐所有相关的医疗资料和身份证件。如有需要，您可以提前到医院前台办理挂号手续。
-如果您对预约有任何疑问或需要进一步的帮助，请随时联系我们的预约部门。
-再次感谢您的信任，我们期待为您提供优质的医疗服务。
-祝您健康！
-医院预约部门
-阳光医院
-123-4567890""",
+    感谢您选择我们医院进行就诊。您的预约已成功确认。以下是预约的详细信息：
+    预约时间：{appointment.appointment_time.strftime("%Y年%m月%d日 %H:%M")}
+    医生姓名：{doctor.doctor_name}
+    科室：{department.department_name}
+    医院地址：北京市海淀区知春路29号
+    请您务必按照预约时间准时前来就诊。如果您有任何紧急情况或无法按时赴约，请提前联系我们的预约部门进行调整。
+    我们提醒您带齐所有相关的医疗资料和身份证件。如有需要，您可以提前到医院前台办理挂号手续。
+    如果您对预约有任何疑问或需要进一步的帮助，请随时联系我们的预约部门。
+    再次感谢您的信任，我们期待为您提供优质的医疗服务。
+    祝您健康！
+    医院预约部门
+    阳光医院
+    123-4567890""",
                         message_time=datetime.now(),
                         user_id_id=user.user_id,
                         is_read=0

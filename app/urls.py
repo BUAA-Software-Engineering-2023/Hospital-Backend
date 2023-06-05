@@ -3,7 +3,7 @@ from .views import DepartmentList, DoctorList, NotificationList, CarouselMapList
     PatientList, UserInfo, PatientDetail, UserView, SendCode, LoginCode, LoginPassWd, MakeAppointment, MakeMedicalRecord \
     , MakeLeave, CancelLeave, LeaveList, VacancyDetail, PatientWaiting, PatientAppointment, CancelAppointment, \
     GetMedicalRecord, AddPatient, DeletePatient, UpdatePatient, UploadAvatar, GetMessage, UnreadMessage, ReadMessage, \
-    Pay, GetPaymentStatus, PaymentList,NotificationDetail,NewsDetail,ChangePassword,ChangePhone
+    Pay, GetPaymentStatus, PaymentList,NotificationDetail,NewsDetail,ChangePassword,ChangePhone,BackPassword
 
 urlpatterns = [
     path('api/departmentList', DepartmentList.as_view()),  # API endpoint for retrieving a list of departments
@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/register', UserView.as_view()),  # API endpoint for user registration
     path('api/loginWithPassword', LoginPassWd.as_view()),  # API endpoint for user login with password
     path('api/changePassword', ChangePassword.as_view()),
+    path('api/resetPassword', BackPassword.as_view()),
     path('api/changePhone', ChangePhone.as_view()),
     path('api/loginWithCode', LoginCode.as_view()),  # API endpoint for user login with verification code
     path('api/makeAppointment', MakeAppointment.as_view()),

@@ -152,15 +152,12 @@ class NewsManage(View):
     def delete(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
-        news_id = json_obj.get('news_id')
-
-        # Check if the news exists and delete it
-        news = News.objects.filter(news_id=news_id).first()
-        if news:
-            news.delete()
-            return JsonResponse({"result": "1", "message": "新闻删除成功！"})
-        else:
-            return JsonResponse({"result": "0", "message": "新闻不存在！"})
+        news_ids = json_obj.get('news_id')
+        for news_id in news_ids:
+            news = News.objects.filter(news_id=news_id).first()
+            if news:
+                news.delete()
+        return JsonResponse({"result": "1", "message": "新闻删除成功！"})
 
 
 class UploadImage(View):
@@ -191,11 +188,13 @@ class NotificationManage(View):
         notification_title = json_obj['notification_title']
         notification_time = datetime.now().date()
         notification_type = json_obj['notification_type']
+        notification_shortinfo = json_obj['notification_shortinfo']
         notification = Notification(
             type=notification_type,
             notification_time=notification_time,
             title=notification_title,
             content=notification_content,
+            short_info=notification_shortinfo,
             image=notification_image
         )
         notification.save()
@@ -204,13 +203,12 @@ class NotificationManage(View):
     def delete(self, request):
         json_str = request.body.decode('utf-8')
         json_obj = json.loads(json_str)
-        notification_id = json_obj['notification_id']
-        notification = Notification.objects.filter(notification_id=notification_id).first()
-        if notification:
-            notification.delete()
-            return JsonResponse({"result": "1", "message": "通知删除成功！"})
-        else:
-            return JsonResponse({"result": "0", "message": "通知不存在！"})
+        notification_ids = json_obj['notification_id']
+        for notification_id in notification_ids:
+            notification = Notification.objects.filter(notification_id=notification_id).first()
+            if notification:
+                notification.delete()
+        return JsonResponse({"result": "1", "message": "通知删除成功！"})
 
 
 # class DoctorImage(View):
