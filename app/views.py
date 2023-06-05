@@ -202,7 +202,9 @@ class DoctorDetail(View):
             vacancies = Vacancy.objects.filter(doctor_id_id=doctor_id)
             available = set()
             for vacancy in vacancies:
-                available.add(vacancy.start_time.strftime("%Y-%m-%d"))
+                today = datetime.now().replace(hour=24, minute=0, second=0, microsecond=0)
+                if vacancy.start_time > today :
+                    available.add(vacancy.start_time.strftime("%Y-%m-%d"))
             available = sorted(list(available))
             data = {
                 "id": doctor.doctor_id,
@@ -244,7 +246,7 @@ class CarouselMapList(View):
                 "id": news.news_id,
                 "img": news.image if news.image else None,
                 "time": news.news_date.strftime("%Y-%m-%d"),
-                "title": news.title,
+                "title": news.news_title,
                 "content": news.content
             })
         response = {

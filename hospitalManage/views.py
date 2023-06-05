@@ -188,7 +188,7 @@ class NotificationManage(View):
         notification_title = json_obj['notification_title']
         notification_time = datetime.now().date()
         notification_type = json_obj['notification_type']
-        notification_shortinfo = json_obj['notification_shortinfo']
+        notification_shortinfo = json_obj['short_info']
         notification = Notification(
             type=notification_type,
             notification_time=notification_time,
@@ -657,8 +657,8 @@ def vacancy_make():
         today = datetime.today()
         current_day = today.weekday() + 1
         days_ahead = schedule.schedule_day - current_day
-        if days_ahead < 0 :
-            days_ahead = -1 * days_ahead
+        if days_ahead <= 0 :
+            days_ahead = days_ahead+7
         start_date = today + timedelta(days=days_ahead)
 
         if schedule.schedule_is_morning:
