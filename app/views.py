@@ -202,8 +202,8 @@ class DoctorDetail(View):
             vacancies = Vacancy.objects.filter(doctor_id_id=doctor_id)
             available = set()
             for vacancy in vacancies:
-                today = datetime.now().replace(hour=24, minute=0, second=0, microsecond=0)
-                if vacancy.start_time > today :
+                today = datetime.now().replace(hour=23, minute=0, second=0, microsecond=0)
+                if vacancy.start_time>today:
                     available.add(vacancy.start_time.strftime("%Y-%m-%d"))
             available = sorted(list(available))
             data = {
