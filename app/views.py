@@ -771,10 +771,12 @@ class Pay(View):
         pay.payment_status = '已支付'
         pay.save()
         appointment = Appointment.objects.get(appointment_id=pay.appointment_id_id)
+
         patient = Patient.objects.get(patient_id=appointment.patient_id_id)
         doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
         department = Department.objects.get(department_id=doctor.department_id_id)
-        users = User.objects.filter(patient_id=patient.patient_id)
+        users = User.objects.filter(patient__patient_id=patient.patient_id)
+
         appointment.appointment_status = 0
         appointment.save()
         for user in users:
@@ -1183,7 +1185,7 @@ class GetMessage(View):
         token = request.META.get('HTTP_AUTHORIZATION')
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
-        messages = Message.objects.filter(user_id=user_id)
+        messages = Message.objects.filter(user_id=user_id).order_by('-message_id')
         messages_read = []
         messages_unread = []
         messages_total = []
