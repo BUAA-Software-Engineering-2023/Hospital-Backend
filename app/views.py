@@ -1183,7 +1183,7 @@ class GetMessage(View):
         token = request.META.get('HTTP_AUTHORIZATION')
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
-        messages = Message.objects.filter(user_id=user_id)
+        messages = Message.objects.filter(user_id=user_id).order_by('-message_id')
         messages_read = []
         messages_unread = []
         messages_total = []
