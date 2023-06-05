@@ -592,8 +592,7 @@ class ProcessLeave(View):
                                             user_id_id=user.user_id
                                         )
                                         message.save()
-                                    appointment.appointment_status = 3
-                                    appointment.save()
+                                    appointment.delete()
                                 Vacancy.delete(vacancy)
                 leave.save()
                 return JsonResponse({"result": "1", "message": "请假批准成功！"})
