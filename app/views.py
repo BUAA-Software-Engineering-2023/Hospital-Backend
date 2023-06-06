@@ -99,7 +99,8 @@ class NotificationList(View):
             if 'count' in keys:
                 count = json_obj['count']
         # Serialize notification objects to JSON
-        notifications = notifications[offset - 1:offset + count]
+        if offset != -1:
+            notifications = notifications[offset - 1:offset + count]
         data = []
         for notification in notifications:
             notification_data = {
@@ -152,7 +153,8 @@ class NewsList(View):
             count = json_obj['count']
         else:
             count = 10
-        news = news[offset - 1:offset + count]
+        if offset != -1:
+            news = news[offset - 1:offset + count]
         # Serialize notification objects to JSON
         data = []
         for new in news:
@@ -162,7 +164,8 @@ class NewsList(View):
                 'title': new.news_title,
                 "content": new.news_content,
                 "type": new.type,
-                "date": new.news_date
+                "date": new.news_date,
+                "short_info":new.short_info
             }
             data.append(news_data)
 
@@ -199,7 +202,9 @@ class DoctorDetail(View):
             vacancies = Vacancy.objects.filter(doctor_id_id=doctor_id)
             available = set()
             for vacancy in vacancies:
-                available.add(vacancy.start_time.strftime("%Y-%m-%d"))
+                today = datetime.now().replace(hour=23, minute=0, second=0, microsecond=0)
+                if vacancy.start_time>today:
+                    available.add(vacancy.start_time.strftime("%Y-%m-%d"))
             available = sorted(list(available))
             data = {
                 "id": doctor.doctor_id,
@@ -241,8 +246,8 @@ class CarouselMapList(View):
                 "id": news.news_id,
                 "img": news.image if news.image else None,
                 "time": news.news_date.strftime("%Y-%m-%d"),
-                "title": news.title,
-                "content": news.content
+                "title": news.news_title,
+                "content": news.news_content
             })
         response = {
             'result': "1",
@@ -770,8 +775,37 @@ class Pay(View):
         pay.payment_status = '已支付'
         pay.save()
         appointment = Appointment.objects.get(appointment_id=pay.appointment_id_id)
+
+        patient = Patient.objects.get(patient_id=appointment.patient_id_id)
+        doctor = Doctor.objects.get(doctor_id=appointment.doctor_id_id)
+        department = Department.objects.get(department_id=doctor.department_id_id)
+        users = User.objects.filter(patient__patient_id=patient.patient_id)
+
         appointment.appointment_status = 0
         appointment.save()
+        for user in users:
+            message = Message(
+                title="您的预约成功",
+                content=
+f"""尊敬的{patient.patient_name}患者，
+感谢您选择我们医院进行就诊。您的预约已成功确认。以下是预约的详细信息：
+预约时间：{appointment.appointment_time.strftime("%Y年%m月%d日 %H:%M")}
+医生姓名：{doctor.doctor_name}
+科室：{department.department_name}
+医院地址：北京市海淀区知春路29号
+请您务必按照预约时间准时前来就诊。如果您有任何紧急情况或无法按时赴约，请提前联系我们的预约部门进行调整。
+我们提醒您带齐所有相关的医疗资料和身份证件。如有需要，您可以提前到医院前台办理挂号手续。
+如果您对预约有任何疑问或需要进一步的帮助，请随时联系我们的预约部门。
+再次感谢您的信任，我们期待为您提供优质的医疗服务。
+祝您健康！
+医院预约部门
+阳光医院
+123-4567890""",
+                message_time=datetime.now(),
+                user_id_id=user.user_id,
+                is_read=0
+            )
+            message.save()
         return JsonResponse({"result": "1", "message": "支付成功！"})
 
 
@@ -797,41 +831,23 @@ class MakeAppointment(View):
         try:
             if vacancy.vacancy_left > 0:
                 vacancy.vacancy_left = vacancy.vacancy_left - 1
+
                 appointment = Appointment(
-                    appointment_time=datetime.strptime(start_time, "%Y-%m-%d %H:%M"),
+                    appointment_time=datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S"),
                     appointment_status=4,
                     doctor_id_id=doctor_id,
                     patient_id_id=patient_id
                 )
                 patient = Patient.objects.get(patient_id=patient_id)
                 users = patient.user_id.all()
+
                 doctor = Doctor.objects.get(doctor_id=doctor_id)
                 department = Department.objects.get(department_id=doctor.department_id_id)
                 appointment.save()
                 print(type(appointment.appointment_time))
                 for user in users:
                     print(user.user_id)
-                    message = Message(
-                        title="您的预约成功",
-                        content=f"""尊敬的{patient.patient_name}患者，
-感谢您选择我们医院进行就诊。您的预约已成功确认。以下是预约的详细信息：
-预约时间：{appointment.appointment_time.strftime("%Y年%m月%d日 %H:%M")}
-医生姓名：{doctor.doctor_name}
-科室：{department.department_name}
-医院地址：北京市海淀区知春路29号
-请您务必按照预约时间准时前来就诊。如果您有任何紧急情况或无法按时赴约，请提前联系我们的预约部门进行调整。
-我们提醒您带齐所有相关的医疗资料和身份证件。如有需要，您可以提前到医院前台办理挂号手续。
-如果您对预约有任何疑问或需要进一步的帮助，请随时联系我们的预约部门。
-再次感谢您的信任，我们期待为您提供优质的医疗服务。
-祝您健康！
-医院预约部门
-阳光医院
-123-4567890""",
-                        message_time=datetime.now(),
-                        user_id_id=user.user_id,
-                        is_read=0
-                    )
-                    message.save()
+
                 appointment.save()
                 payment = Payment(
                     payment_status="待支付",
@@ -1174,7 +1190,7 @@ class GetMessage(View):
         token = request.META.get('HTTP_AUTHORIZATION')
         jwt_token = jwt.decode(token, settings.JWT_TOKEN_KEY, algorithms='HS256')
         user_id = User.objects.get(phone_number=jwt_token['username']).user_id
-        messages = Message.objects.filter(user_id=user_id)
+        messages = Message.objects.filter(user_id=user_id).order_by('-message_id')
         messages_read = []
         messages_unread = []
         messages_total = []
