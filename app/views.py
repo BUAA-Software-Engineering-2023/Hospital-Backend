@@ -1334,7 +1334,8 @@ def is_illegal_phoneNumber(phone):
 def start():
     scheduler = BackgroundScheduler()
     scheduler.add_jobstore(DjangoJobStore(), "default")
-    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True)
+    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True, id="generate_vacancy",
+                      replace_existing=True)
 
     scheduler.start()
 
