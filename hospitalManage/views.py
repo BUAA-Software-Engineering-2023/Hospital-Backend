@@ -19,7 +19,7 @@ from tool.logging_dec import logging_check
 
 import hashlib
 
-AppointmentStatus = ["待就医", "待就医", "已就医", "失约"]
+AppointmentStatus = ["待就医", "待就医", "已就医", "失约", "待支付", "被取消"]
 
 
 # Create your views here.
@@ -623,7 +623,6 @@ def vacancy_check():
             is_morning = 1
         else:
             is_morning = 0
-        # print(is_morning)
         schedules = Schedule.objects.filter(schedule_day=weekday, doctor_id=doctor_id, schedule_is_morning=is_morning)
         if schedules.first():
             continue
@@ -644,7 +643,7 @@ def vacancy_check():
                             user_id_id=user.user_id
                         )
                         message.save()
-                    appointment.appointment_status = 3
+                    appointment.appointment_status = 4
                     appointment.save()
             vacancy.delete()
     return JsonResponse({"result": "1"})

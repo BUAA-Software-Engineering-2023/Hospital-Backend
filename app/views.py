@@ -22,7 +22,7 @@ from .models import Department, Doctor, Notification, News, Vacancy, Patient, Us
 from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore
 
-AppointmentStatus = ["待就医", "待就医", "已就医", "失约", "待支付"]
+AppointmentStatus = ["待就医", "待就医", "已就医", "失约", "待支付", "被取消"]
 
 
 # Create your views here.
@@ -345,14 +345,14 @@ class VacancyDetail(View):
                     data.append(info)
             response = {
                 "result": "1",
-                "message":"成功获取放号的具体信息",
+                "message": "成功获取放号的具体信息",
                 "data": data
             }
             return JsonResponse(response)
         except:
             return JsonResponse({
                 "result": "0",
-                "message":"出错了"
+                "message": "出错了"
             })
 
 
@@ -424,7 +424,7 @@ class PatientWaiting(View):
                     appointment_finished.append(info)
             response = {
                 "result": "1",
-                "message":"成功拿到等待患者的信息",
+                "message": "成功拿到等待患者的信息",
                 "appointment_finished": appointment_finished,
                 "appointment_unfinished": appointment_unfinished
             }
@@ -457,7 +457,7 @@ class LeaveList(View):
                 data.append(info)
             response = {
                 "result": "1",
-                "message":"成功获取请假列表",
+                "message": "成功获取请假列表",
                 "data": data
             }
             return JsonResponse(response)
@@ -1062,7 +1062,7 @@ class GetMedicalRecord(View):
                 "result": medical_record.result
             }
             data.append(result)
-        return JsonResponse({"result": "1","message":"成功获取病历","data": data})
+        return JsonResponse({"result": "1", "message": "成功获取病历", "data": data})
 
 
 def calculate_age(id_card_number):
@@ -1291,10 +1291,8 @@ def generate_vacancy():
     delta = end_date - start_date
     for i in range(1, delta.days + 1):
         current_date = start_date + timedelta(days=i)
-
         # 根据日期查询对应的Schedule
         schedules = Schedule.objects.filter(schedule_day=current_date.weekday() + 1)
-
         for schedule in schedules:
             if schedule.schedule_is_morning:
                 start_time = current_date.replace(hour=8, minute=0, second=0, microsecond=0)
@@ -1336,7 +1334,8 @@ def is_illegal_phoneNumber(phone):
 def start():
     scheduler = BackgroundScheduler()
     scheduler.add_jobstore(DjangoJobStore(), "default")
-    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True)
+    scheduler.add_job(generate_vacancy, 'cron', hour=0, minute=0, coalesce=True, id="generate_vacancy",
+                      replace_existing=True)
 
     scheduler.start()
 
